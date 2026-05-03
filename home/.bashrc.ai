@@ -1,0 +1,24 @@
+# ~/.bashrc.ai — Non-interactive bash for AI/automation sessions
+# shellcheck shell=bash
+# shellcheck source=.config/shell/env.sh
+. "$HOME/.config/shell/env.sh"
+
+export LAIDBACK_EXECUTION_MODE=ai
+export PAGER=cat
+export GIT_PAGER=cat
+export EDITOR=true
+export VISUAL=true
+# Disable interactive prompts in common tools
+export DEBIAN_FRONTEND=noninteractive
+export NPM_CONFIG_PROGRESS=false
+export PIP_NO_INPUT=1
+
+# Activate mise in bash if available
+if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate bash --shims)"
+fi
+
+# Optional: launch a custom ai-bash wrapper if it exists
+if [ -x "$HOME/bin/ai-bash" ]; then
+    exec "$HOME/bin/ai-bash"
+fi

@@ -1,0 +1,388 @@
+[tools]
+shfmt = "3.12.0"
+shellcheck = "0.10.0"
+actionlint = "1.7.8"
+hadolint = "2.12.0"
+"npm:markdownlint-cli" = "0.45.0"
+act = "0.2.82"
+age = "1.2.1"
+sops = "3.9.1"
+gh = "2.76.2"
+glab = "1.66.0"
+jq = "1.8.1"
+yq = "4.45.4"
+
+[settings]
+experimental = true
+
+[tasks."bootstrap"]
+description = "Stow home dotfiles and install global mise tasks"
+run = '''bash -c '
+set -euo pipefail
+# Ensure stow is available (not in mise registry — install via system package manager)
+if ! command -v stow >/dev/null 2>&1; then
+  echo "bootstrap: installing stow..."
+  case "$(uname -s)" in
+    Darwin)  brew install stow ;;
+    Linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y stow
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y stow
+      else
+        echo "bootstrap: cannot install stow — install it manually and re-run" >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "bootstrap: unsupported OS for stow auto-install" >&2
+      exit 1
+      ;;
+  esac
+fi
+# Create directories that stow will not create (stow only creates symlinks)
+mkdir -p "$HOME/.kube" "$HOME/.aws" "$HOME/.config/Code/User"
+mkdir -p "${XDG_PROJECTS_DIR:-$HOME/projects}"
+# Stow home/ into $HOME.
+# --adopt: replace any existing plain files with the repo version first.
+# --restow: remove and re-create symlinks (idempotent re-run safe).
+stow --dir="$(pwd)" --target="$HOME" --adopt --restow home
+echo "bootstrap: home/ stowed into $HOME"
+# Ensure stowed task scripts are executable.
+chmod +x "$HOME/.config/mise/tasks/"*.sh "$HOME/.config/mise/tasks/dotfiles/"*.sh 2>/dev/null || true
+echo "bootstrap: global mise tasks ready at ~/.config/mise/tasks/"
+' '''
+
+[tasks."status"]
+description = "Show bootstrap and environment status"
+run = '''bash -c '
+set -euo pipefail
+: "${LAIDBACK_FORGE:=github.com/laidback}"
+: "${XDG_PROJECTS_DIR:=$HOME/projects}"
+: "${LAIDBACK_DOTFILES_ROOT:=$XDG_PROJECTS_DIR/$LAIDBACK_FORGE/laidback-dotfiles}"
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${XDG_DATA_HOME:=$HOME/.local/share}"
+: "${XDG_STATE_HOME:=$HOME/.local/state}"
+: "${XDG_CACHE_HOME:=$HOME/.cache}"
+
+_sym() {
+  local label="$1" path="$2"
+  if [ -L "$path" ]; then
+    printf "  %-22s symlink -> %s\n" "$label" "$(readlink "$path")"
+  elif [ -e "$path" ]; then
+    printf "  %-22s plain   %s\n" "$label" "$path"
+  else
+    printf "  %-22s MISSING %s\n" "$label" "$path"
+  fi
+}
+
+echo "======================================================================"
+echo "  laidback-dotfiles  status"
+echo "======================================================================"
+echo ""
+echo "  environment"
+printf "  %-22s %s\n" "HOME"              "$HOME"
+printf "  %-22s %s\n" "XDG_PROJECTS_DIR"  "$XDG_PROJECTS_DIR"
+printf "  %-22s %s\n" "LAIDBACK_FORGE"         "$LAIDBACK_FORGE"
+printf "  %-22s %s\n" "LAIDBACK_DOTFILES_ROOT" "$LAIDBACK_DOTFILES_ROOT"
+printf "  %-22s %s\n" "XDG_CONFIG_HOME"   "$XDG_CONFIG_HOME"
+printf "  %-22s %s\n" "XDG_DATA_HOME"     "$XDG_DATA_HOME"
+printf "  %-22s %s\n" "XDG_STATE_HOME"    "$XDG_STATE_HOME"
+printf "  %-22s %s\n" "XDG_CACHE_HOME"    "$XDG_CACHE_HOME"
+echo ""
+echo "  repository"
+_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+_commit="$(git log -1 --format="%h %s" 2>/dev/null || echo unknown)"
+printf "  %-22s %s\n" "branch" "$_branch"
+printf "  %-22s %s\n" "commit" "$_commit"
+echo ""
+echo "  stow symlinks"
+_sym "env.sh"          "$HOME/.config/shell/env.sh"
+_sym "mise config"     "$HOME/.config/mise/config.toml"
+_sym ".zshrc"          "$HOME/.zshrc"
+_sym ".zprofile"       "$HOME/.zprofile"
+_sym ".profile"        "$HOME/.profile"
+echo ""
+echo "  tools"
+for _tool in mise git stow gh jq sops age; do
+  if command -v "$_tool" >/dev/null 2>&1; then
+    _ver_raw="$("$_tool" --version 2>/dev/null || true)"
+    _ver="$(printf '%s' "$_ver_raw" | head -1)"
+    [ -z "$_ver" ] && _ver="installed (version unavailable)"
+    printf "  %-22s %s\n" "$_tool" "$_ver"
+  else
+    printf "  %-22s %s\n" "$_tool" "not found"
+  fi
+done
+echo "======================================================================"
+' '''
+
+[tasks."doctor"]
+description = "Verify bootstrap and toolchain health"
+run = '''bash -c '
+set -euo pipefail
+: "${LAIDBACK_DOTFILES_ROOT:=$(pwd)}"
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+
+_pass() { printf "  %-38s PASS\n"     "$1"; }
+_fail() { printf "  %-38s FAIL  %s\n" "$1" "$2"; _errors=$((_errors + 1)); }
+_warn() { printf "  %-38s WARN  %s\n" "$1" "$2"; }
+_errors=0
+
+_check() {
+  local label="$1" cond="$2" msg="${3:-}"
+  if eval "$cond" >/dev/null 2>&1; then _pass "$label"
+  elif [ -n "$msg" ]; then _warn "$label" "$msg"
+  else _fail "$label" "(failed)"; fi
+}
+_require() {
+  local label="$1" cond="$2" msg="${3:-}"
+  if eval "$cond" >/dev/null 2>&1; then _pass "$label"
+  else _fail "$label" "$msg"; fi
+}
+
+echo "======================================================================"
+echo "  laidback-dotfiles  doctor"
+echo "======================================================================"
+echo ""
+
+_require "repo: dotfiles present"      "[ -d \"$LAIDBACK_DOTFILES_ROOT/.git\" ]"          "not found at $LAIDBACK_DOTFILES_ROOT"
+_require "stow: env.sh symlinked"      "[ -L \"$HOME/.config/shell/env.sh\" ]"        "run: mise run bootstrap"
+_check   "stow: mise/config.toml"      "[ -L \"$HOME/.config/mise/config.toml\" ]"    "not a symlink"
+_check   "stow: .zshrc"                "[ -L \"$HOME/.zshrc\" ]"                      "not a symlink"
+_check   "stow: .zprofile"             "[ -L \"$HOME/.zprofile\" ]"                   "not a symlink"
+_require "tool: mise"                  "command -v mise"                              "not in PATH"
+_require "tool: git"                   "command -v git"                               "not in PATH"
+_check   "tool: stow"                  "command -v stow"                              "run bootstrap to auto-install"
+_check   "tool: sops"                  "command -v sops"                              "optional"
+_check   "tool: age"                   "command -v age"                               "optional"
+_require "global task: dotfiles:status" "[ -x \"$HOME/.config/mise/tasks/dotfiles/status.sh\" ]" "run: mise run bootstrap"
+_require "global task: dotfiles:doctor" "[ -x \"$HOME/.config/mise/tasks/dotfiles/doctor.sh\" ]" "run: mise run bootstrap"
+
+echo ""
+if [ "$_errors" -eq 0 ]; then
+  echo "  doctor: ok"
+else
+  printf "  doctor: %d check(s) failed\n" "$_errors"
+  exit 1
+fi
+echo "======================================================================"
+' '''
+
+[tasks."fmt"]
+description = "Format repository shell scripts"
+run = "shfmt -w install.sh home/.config/shell/env.sh home/.profile home/.zprofile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh"
+
+[tasks."shell:lint"]
+description = "Lint shell scripts"
+run = "shellcheck install.sh home/.config/shell/env.sh home/.profile home/.zprofile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh"
+
+[tasks."docs:lint"]
+description = "Lint repository markdown docs"
+run = "markdownlint README.md ARCHITECTURE.md"
+
+[tasks."json:lint"]
+description = "Validate JSON file syntax"
+run = '''bash -c '
+set -euo pipefail
+files="$(find . -type f -name "*.json" | grep -v "^./.git/" || true)"
+if [ -n "$files" ]; then
+	echo "$files" | while IFS= read -r file; do
+		jq empty "$file" >/dev/null
+	done
+fi
+' '''
+
+[tasks."docker:lint"]
+description = "Lint Dockerfile"
+run = '''bash -c '
+if ! command -v hadolint >/dev/null 2>&1; then
+  echo "docker:lint: hadolint not found — skipping"
+  exit 0
+fi
+set +e
+hadolint --config .hadolint.yaml Dockerfile
+_exit=$?
+set -e
+if [ "$_exit" -eq 139 ] || [ "$_exit" -eq 134 ]; then
+  echo "docker:lint: hadolint crashed (arm64 binary issue on macOS — skipping)"
+  echo "docker:lint: lint will run in CI on ubuntu-24.04/amd64"
+  exit 0
+fi
+exit "$_exit"
+' '''
+
+[tasks."docker:build"]
+description = "Build the runtime Docker image (IMAGE=name:tag)"
+run = '''bash -c '
+set -euo pipefail
+: "${IMAGE:=laidback-dotfiles:latest}"
+EXTRA_CA=""
+[ -f ZscalerRootCA.pem ] && EXTRA_CA="--secret id=extra_ca,src=ZscalerRootCA.pem"
+# shellcheck disable=SC2086
+docker build $EXTRA_CA --target runtime -t "$IMAGE" .
+echo "docker:build: $IMAGE"
+' '''
+
+[tasks."docker:test"]
+description = "Build and run the test stage (validates full install + shell smoke tests)"
+run = '''bash -c '
+set -euo pipefail
+: "${IMAGE:=laidback-dotfiles:test}"
+EXTRA_CA=""
+[ -f ZscalerRootCA.pem ] && EXTRA_CA="--secret id=extra_ca,src=ZscalerRootCA.pem"
+# shellcheck disable=SC2086
+docker build $EXTRA_CA --target test -t "$IMAGE" .
+docker run --rm "$IMAGE" bash -c "echo \"docker:test: ok — image=$IMAGE\""
+echo "docker:test: passed"
+' '''
+
+[tasks."docker:validate"]
+description = "Run lint + docker:test (full Docker validation gate)"
+depends = ["docker:lint", "docker:test"]
+run = "echo 'docker:validate: ok'"
+
+[tasks."docker:run"]
+description = "Launch an interactive shell inside the runtime image"
+run = '''bash -c '
+set -euo pipefail
+: "${IMAGE:=laidback-dotfiles:latest}"
+docker run --rm -it "$IMAGE"
+' '''
+
+[tasks."docker:push"]
+description = "Push image to registry (set IMAGE=registry/repo:tag)"
+run = '''bash -c '
+set -euo pipefail
+: "${IMAGE:?set IMAGE=registry/repo:tag}"
+docker push "$IMAGE"
+echo "docker:push: $IMAGE"
+' '''
+
+[tasks."ci:workflow-validate"]
+description = "Validate GitHub Actions workflows"
+run = "actionlint .github/workflows/*.yml"
+
+[tasks."security:sops-check"]
+description = "Verify sops and age are installed"
+run = "command -v sops >/dev/null 2>&1 && command -v age >/dev/null 2>&1 && echo 'security sops/age check: ok'"
+
+[tasks."lint"]
+description = "Run all repository linters"
+depends = ["shell:lint", "docs:lint", "json:lint", "docker:lint", "ci:workflow-validate"]
+run = "echo 'lint: ok'"
+
+[tasks."validate"]
+description = "Run full repository validation"
+depends = ["doctor", "lint"]
+run = "echo 'validate: ok'"
+
+[tasks."build"]
+description = "Build distributable dotfiles tarball"
+run = '''bash -c '
+set -euo pipefail
+mkdir -p dist
+stamp="$(date +%Y%m%d-%H%M%S)"
+# Collect only files that actually exist.
+includes=""
+for f in README.md ARCHITECTURE.md Dockerfile Makefile install.sh mise home init .github; do
+  [ -e "$f" ] && includes="$includes $f"
+done
+# shellcheck disable=SC2086
+tar -czf "dist/dotfiles-${stamp}.tar.gz" $includes
+echo "build artifact: dist/dotfiles-${stamp}.tar.gz"
+' '''
+
+[tasks."test"]
+description = "Run standard repository checks"
+depends = ["validate"]
+run = "echo 'test: ok'"
+
+[tasks."release-check"]
+description = "Release gate checks"
+depends = ["cycle", "build"]
+run = '''bash -c '
+set -euo pipefail
+git diff --quiet || { echo "release-check: working tree has changes" >&2; exit 1; }
+echo "release-check: ok"
+' '''
+
+[tasks."release:dry-run"]
+description = "Show release actions without changing git state"
+run = '''bash -c '
+set -euo pipefail
+echo "release dry-run"
+echo "1) mise run release-check"
+echo "2) mise run release:tag TAG=vX.Y.Z"
+echo "3) mise run release:publish TAG=vX.Y.Z"
+' '''
+
+[tasks."release:tag"]
+description = "Create annotated git tag (set TAG=vX.Y.Z)"
+run = '''bash -c '
+set -euo pipefail
+: "${TAG:?set TAG=vX.Y.Z}"
+git diff --quiet || { echo "release-tag: working tree has changes" >&2; exit 1; }
+git rev-parse --verify "$TAG" >/dev/null 2>&1 && { echo "release-tag: tag exists" >&2; exit 1; }
+git tag -a "$TAG" -m "release $TAG"
+echo "created tag: $TAG"
+' '''
+
+[tasks."release:publish"]
+description = "Push git tag (set TAG=vX.Y.Z)"
+run = '''bash -c '
+set -euo pipefail
+: "${TAG:?set TAG=vX.Y.Z}"
+git rev-parse --verify "$TAG" >/dev/null 2>&1
+git push origin "$TAG"
+echo "published tag: $TAG"
+' '''
+
+[tasks."ci:act"]
+description = "Run CI workflow locally with act"
+run = '''bash -c '
+set -euo pipefail
+[ -f .secrets.act ] || { echo "missing .secrets.act (copy from .secrets.act.example)" >&2; exit 1; }
+act -W .github/workflows/ci.yml
+' '''
+
+[tasks."cycle"]
+description = "Run full dotfiles source loop (bootstrap + validate, no Docker)"
+depends = ["bootstrap", "status", "validate"]
+run = "echo 'cycle: ok'"
+
+[tasks."ci:local"]
+description = "Full local CI: source loop + Docker test (mirrors GHA)"
+depends = ["cycle", "docker:validate"]
+run = "echo 'ci:local: ok'"
+
+# compatibility aliases
+[tasks."repo:bootstrap"]
+description = "Alias"
+depends = ["bootstrap"]
+run = "true"
+
+[tasks."repo:status"]
+description = "Alias"
+depends = ["status"]
+run = "true"
+
+[tasks."repo:doctor"]
+description = "Alias"
+depends = ["doctor"]
+run = "true"
+
+[tasks."repo:validate"]
+description = "Alias"
+depends = ["validate"]
+run = "true"
+
+[tasks."repo:build"]
+description = "Alias"
+depends = ["build"]
+run = "true"
+
+[tasks."repo:cycle"]
+description = "Alias"
+depends = ["cycle"]
+run = "true"

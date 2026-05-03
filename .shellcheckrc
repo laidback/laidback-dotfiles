@@ -1,0 +1,4 @@
+# .shellcheckrc — shellcheck project configuration
+# SC1091: don't follow sourced files whose paths expand at runtime ($HOME/...).
+#         All sourced files are guarded with [ -f ... ] or explicitly annotated.
+disable=SC1091

@@ -1,0 +1,37 @@
+# ~/.config/git/config
+[user]
+  name = Lukas Ciszewski
+  email = lukas.ciszewski@gmail.com
+
+[core]
+  excludesFile = ~/.config/git/ignore
+  attributesFile = ~/.config/git/attributes
+  hooksPath = ~/.config/git/hooks
+  editor = vim
+  pager = delta
+
+[init]
+  defaultBranch = main
+
+[pull]
+  rebase = true
+
+[rebase]
+  autoStash = true
+
+[push]
+  autoSetupRemote = true
+
+[delta]
+  navigate = true
+  side-by-side = true
+  line-numbers = true
+
+[alias]
+  lg = log --oneline --graph --decorate --all
+  st = status -sb
+  sw = switch
+  co = checkout
+
+[includeIf "gitdir:~/work/"]
+  path = ~/.config/git/work.config   # override email/signing for work repos

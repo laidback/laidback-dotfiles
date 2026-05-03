@@ -1,0 +1,14 @@
+# hadolint configuration
+# https://github.com/hadolint/hadolint/blob/master/docs/CONFIGURATION.md
+
+# DL3008: apt-get install without pinned versions.
+#   Suppressed: base image tag (bookworm-slim) is the version pin for system packages.
+# DL3009: delete apt lists in the same layer.
+#   Not suppressed: we always do `rm -rf /var/lib/apt/lists/*` in the same RUN.
+# DL3059: multiple consecutive RUN instructions — style preference, not a bug.
+# SC2086: double-quote to prevent globbing — suppressed inline where intentional.
+ignore:
+  - DL3008
+  - DL3059
+
+failure-threshold: error

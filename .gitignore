@@ -1,0 +1,28 @@
+# Local build artifacts
+dist/
+node_modules/
+
+# Mise local state
+.mise.local.toml
+
+# Secrets — never commit
+.secrets.act
+*.local.toml
+*.local.yaml
+config.local
+
+# Corporate proxy CA (provided per-machine, not in git)
+ZscalerRootCA.pem
+
+# OS
+.DS_Store
+*~
+*.swp
+
+# Per-user data (must be provided per-machine; never commit)
+home/.aws/
+home/.kube/
+home/.config/glab-cli/
+home/.config/.jira.d/
+home/projects/*.code-workspace
+home/projects/mise/

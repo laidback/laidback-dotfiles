@@ -1,0 +1,22 @@
+.DS_Store
+.idea/
+.vscode/
+.zed/
+.fleet/
+*.swp
+*.swo
+*~
+.direnv/
+.envrc.local
+.mise.local.toml
+.python-version
+Thumbs.db
+# ~/.config/git/ignore  — global patterns
+.direnv
+.envrc.local
+*.local
+#**/.laidback/secrets/*.dec
+node_modules/
+.idea/
+.vscode/
+*.swp

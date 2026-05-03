@@ -1,0 +1,4 @@
+# ~/.bash_profile.ai — Login bash for AI/automation sessions
+# shellcheck shell=bash
+# shellcheck source=.bashrc.ai
+[[ -f ~/.bashrc.ai ]] && . ~/.bashrc.ai

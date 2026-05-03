@@ -1,0 +1,23 @@
+# dotfiles/home/.config/mise/config.toml
+# Global mise configuration for the user
+
+[tools]
+node    = "latest"
+python  = "latest"
+go      = "latest"
+rust    = "latest"
+uv      = "latest"
+ripgrep = "latest"
+fd      = "latest"
+bat     = "latest"
+delta   = "latest"
+zoxide  = "latest"
+
+[settings]
+verbose = false
+color = true
+auto_install = true
+
+# Source core XDG + Laidback environment in every mise-managed shell
+[env]
+_.source = "{{env.HOME}}/.config/shell/env.sh"
