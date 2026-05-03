@@ -3,7 +3,7 @@
 **Laidback Home Environment** — A mise-first, XDG-compliant home control plane for deterministic
 human and AI/script shell orchestration.
 
-![CI Status](https://github.com/laidback/dotfiles/actions/workflows/ci.yml/badge.svg)
+![CI Status](https://github.com/laidback/laidback-dotfiles/actions/workflows/ci.yml/badge.svg)
 ![Mise First](https://img.shields.io/badge/mise-first-brightgreen)
 ![XDG](https://img.shields.io/badge/xdg-compliant-blue)
 
@@ -29,7 +29,7 @@ for development and release are available from the cloned project directory.
 ## Quick Start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/laidback/dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/laidback/laidback-dotfiles/main/install.sh | bash
 ```
 
 The installer:
@@ -37,7 +37,7 @@ The installer:
 1. Detects your OS and architecture.
 2. Installs `mise` if not present.
 3. Installs `git` if not present.
-4. Clones the repository to `$XDG_PROJECTS_DIR/github.com/laidback/dotfiles`.
+4. Clones the repository to `$XDG_PROJECTS_DIR/github.com/laidback/laidback-dotfiles`.
 5. Runs `mise run bootstrap` to configure your home environment.
 
 After bootstrap, restart your shell. Global tasks are then available from anywhere:
@@ -72,7 +72,7 @@ Highlights:
 ## Development Workflow
 
 ```bash
-# From $XDG_PROJECTS_DIR/github.com/laidback/dotfiles
+# From $XDG_PROJECTS_DIR/github.com/laidback/laidback-dotfiles
 mise run validate
 mise run lint
 mise run build

@@ -1,0 +1,52 @@
+# ~/.config/starship.toml — Starship prompt configuration
+# https://starship.rs/config/
+
+# Slightly faster than default; show last command duration above 2s.
+command_timeout = 1500
+add_newline = true
+
+# Two-line prompt: info on top, prompt char below.
+format = """
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$golang\
+$rust\
+$docker_context\
+$cmd_duration\
+$line_break\
+$character"""
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[directory]
+truncation_length = 4
+truncate_to_repo = true
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold yellow"
+
+[cmd_duration]
+min_time = 2000
+format = " [⏱ $duration]($style)"
+style = "yellow"
+
+[nodejs]
+symbol = " "
+[python]
+symbol = " "
+[golang]
+symbol = " "
+[rust]
+symbol = " "
+[docker_context]
+symbol = " "
