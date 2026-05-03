@@ -58,7 +58,9 @@ ENV MISE_INSTALL_PATH=/usr/local/bin/mise \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -fsSL https://mise.run | sh \
-    && chmod 0755 /usr/local/bin/mise
+    && chmod 0755 /usr/local/bin/mise \
+    && mkdir -p "$MISE_CACHE_DIR" "$MISE_DATA_DIR" \
+    && chown -R ${USER_UID}:${USER_GID} "$MISE_CACHE_DIR" "$MISE_DATA_DIR"
 
 WORKDIR /workspace/dotfiles
 # Copy in two layers so module cache is invalidated only when source changes.
@@ -84,6 +86,8 @@ ENV HOME=/home/${USERNAME:-laidback} \
 COPY . .
 
 # Pre-create XDG dirs so stow has a valid target tree.
+# Remove skel-provided dotfiles so stow --adopt --restow does not abort on
+# pre-existing plain files (.profile, .bashrc, .bash_logout) from /etc/skel.
 RUN mkdir -p \
       "$HOME/.config/shell" \
       "$HOME/.config/mise/tasks/dotfiles" \
@@ -91,6 +95,7 @@ RUN mkdir -p \
       "$HOME/.local/state" \
       "$HOME/.cache" \
       "$HOME/projects" \
+    && rm -f "$HOME/.profile" "$HOME/.bashrc" "$HOME/.bash_logout" \
     && chown -R ${USERNAME}:${USERNAME} "$HOME" /workspace/dotfiles
 
 USER ${USERNAME}
