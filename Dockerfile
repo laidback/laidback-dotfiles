@@ -86,6 +86,8 @@ ENV HOME=/home/${USERNAME:-laidback} \
 COPY . .
 
 # Pre-create XDG dirs so stow has a valid target tree.
+# Remove skel-provided dotfiles so stow --adopt --restow does not abort on
+# pre-existing plain files (.profile, .bashrc, .bash_logout) from /etc/skel.
 RUN mkdir -p \
       "$HOME/.config/shell" \
       "$HOME/.config/mise/tasks/dotfiles" \
@@ -93,6 +95,7 @@ RUN mkdir -p \
       "$HOME/.local/state" \
       "$HOME/.cache" \
       "$HOME/projects" \
+    && rm -f "$HOME/.profile" "$HOME/.bashrc" "$HOME/.bash_logout" \
     && chown -R ${USERNAME}:${USERNAME} "$HOME" /workspace/dotfiles
 
 USER ${USERNAME}
