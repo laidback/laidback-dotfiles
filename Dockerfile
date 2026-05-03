@@ -58,7 +58,9 @@ ENV MISE_INSTALL_PATH=/usr/local/bin/mise \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -fsSL https://mise.run | sh \
-    && chmod 0755 /usr/local/bin/mise
+    && chmod 0755 /usr/local/bin/mise \
+    && mkdir -p "$MISE_CACHE_DIR" "$MISE_DATA_DIR" \
+    && chown -R ${USER_UID}:${USER_GID} "$MISE_CACHE_DIR" "$MISE_DATA_DIR"
 
 WORKDIR /workspace/dotfiles
 # Copy in two layers so module cache is invalidated only when source changes.
