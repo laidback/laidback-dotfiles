@@ -78,6 +78,10 @@ Highlights:
 | Anywhere | `mise run dotfiles:doctor` | Requires bootstrap completed |
 | Anywhere | `mise run projects:clone <url>` | Forge-deterministic clone |
 | Anywhere | `mise run projects:fingerprint [path]` | Project introspection |
+| Repository | `mise run secrets:init` | One-time age + sops bootstrap |
+| Repository | `mise run secrets:edit` | Edit encrypted tokens via sops |
+| Repository | `mise run secrets:decrypt` | Refresh plaintext at `$LAIDBACK_CONFIG/secrets.env` |
+| Repository | `mise run secrets:status` | Verify variable presence (no values) |
 | Repository | `mise run status` | Direct task from `mise/config.toml` |
 | Repository | `mise run doctor` | Direct task from `mise/config.toml` |
 | Repository | `mise run validate` | Full validation gate |
@@ -100,6 +104,73 @@ already carries the shell signal. It prints one structured line in non-interacti
 
 Mode is controlled by `LAIDBACK_EXECUTION_MODE` (`human` | `ai` | `ci`, default `human`).
 Set `LAIDBACK_FORCE_MOTD=1` to force the line in human mode for testing.
+
+## Secrets (sops + age)
+
+User-environment tokens (`GITHUB_TOKEN`, `GLAB_TOKEN`, `JIRA_API_TOKEN`,
+`ANTHROPIC_API_KEY`, …) are managed through `sops` + `age` and live **outside**
+this git repo at `$LAIDBACK_CONFIG/secrets.env(.sops)` (=
+`$XDG_CONFIG_HOME/laidback/secrets.env(.sops)`). They are sourced into every
+shell automatically by `home/.config/shell/env.sh` when present.
+
+### One-time setup
+
+```bash
+mise install                   # ensures sops + age are present (already in mise/config.toml)
+mise run secrets:init          # generates an age keypair, writes .sops.yaml, seeds secrets.env.sops from the template
+mise run secrets:edit          # opens the encrypted file in $EDITOR via sops; fill in your tokens
+mise run secrets:decrypt       # writes plaintext to $LAIDBACK_CONFIG/secrets.env (chmod 600)
+exec $SHELL -l                 # reload — env.sh now exports the tokens
+mise run secrets:status        # verifies presence (no values printed)
+```
+
+### Daily edits
+
+```bash
+mise run secrets:edit          # sops re-encrypts on save
+mise run secrets:decrypt       # refresh the plaintext copy
+exec $SHELL -l                 # or open a new terminal
+```
+
+### What the variables look like
+
+The canonical list is shipped as the safe-to-commit template
+[`home/.config/laidback/secrets.env.example`](home/.config/laidback/secrets.env.example),
+which is stowed to `~/.config/laidback/secrets.env.example`. It enumerates the
+tokens the laidback stack expects (GitHub, GitLab, Jira, GHCR, LLM providers).
+Empty values are fine — only the ones you need actually have to be filled.
+
+### How leakage is prevented
+
+1. **The decrypted file lives outside this repo** (`$LAIDBACK_CONFIG/secrets.env`),
+   so a stray `git add` cannot pick it up.
+2. **`.gitignore`** belt-and-braces matches `secrets.env`, `**/secrets.env`,
+   `home/.config/laidback/secrets.env`, and `home/.config/sops/age/keys.txt` —
+   even if a copy were dropped inside the repo, git would refuse to track it.
+3. **`env.sh` enforces mode `0600` (or `0400`)** on the plaintext file before
+   sourcing it; a too-open file is rejected with a printed warning instead of
+   silently exporting on a shared system.
+4. **The encrypted `.sops` file is safe to commit anywhere** (e.g. a private
+   `dotfiles-secrets` repo). Without the matching age private key it is
+   opaque ciphertext.
+5. **The age private key** at `~/.config/sops/age/keys.txt` is `chmod 700` on
+   the directory, `chmod 600` on the file, and never enters this repo.
+
+### Multi-machine
+
+To use the same secrets on another machine, share the encrypted file and the
+age private key out-of-band (1Password, hardware token, encrypted USB):
+
+```bash
+# on the new machine, after `mise run secrets:init` has created an empty layout:
+cp /path/to/keys.txt        ~/.config/sops/age/keys.txt && chmod 600 $_
+cp /path/to/secrets.env.sops $LAIDBACK_CONFIG/secrets.env.sops
+mise run secrets:decrypt
+```
+
+To rotate the recipient set (add a colleague's public key), edit
+`$LAIDBACK_CONFIG/.sops.yaml` and re-encrypt with `sops updatekeys
+$LAIDBACK_CONFIG/secrets.env.sops`.
 
 ## Development Workflow
 
@@ -141,4 +212,5 @@ mise run release:publish TAG=vX.Y.Z
 This repository follows [Semantic Versioning](https://semver.org/). The current baseline is
 `v0.1.0` — first publicly shareable cut covering bootstrap, stow layout, mode-aware MOTD,
 starship shell + nesting indicators, namespaced global tasks (`dotfiles:*`, `projects:*`),
-Docker validation, and full GitHub Actions CI.
+Docker validation, and full GitHub Actions CI. `v0.2.0` adds the `secrets:*` task family
+(sops + age user-token management).

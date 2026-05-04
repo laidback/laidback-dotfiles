@@ -64,4 +64,32 @@ PATH="$HOME/.local/bin:$PATH"
 PATH="$MISE_DATA_DIR/shims:$PATH"
 export PATH
 
+# ── User secrets (sops/age managed) ──────────────────────────────────────────
+# Decrypted plaintext lives at $LAIDBACK_CONFIG/secrets.env (mode 0600).
+# Lifecycle is managed via `mise run secrets:{init,edit,decrypt,status}`.
+# The file is auto-sourced here so tokens (GITHUB_TOKEN, GLAB_TOKEN, ...) are
+# available to all shells, mise tasks, and tools.
+#
+# Refuses to source if permissions are too open, to avoid leaking on shared
+# systems. Silent if the file is absent — the system works without secrets,
+# they only enable token-gated tools.
+_secrets_file="$LAIDBACK_CONFIG/secrets.env"
+if [ -r "$_secrets_file" ]; then
+	_secrets_mode="$(stat -f %A "$_secrets_file" 2>/dev/null || stat -c %a "$_secrets_file" 2>/dev/null || echo "")"
+	case "$_secrets_mode" in
+	600 | 400)
+		set -a
+		# shellcheck disable=SC1090
+		. "$_secrets_file"
+		set +a
+		;;
+	*)
+		printf 'env.sh: refusing to load %s (mode=%s, expected 600)\n' \
+			"$_secrets_file" "${_secrets_mode:-?}" >&2
+		;;
+	esac
+	unset _secrets_mode
+fi
+unset _secrets_file
+
 export LAIDBACK_ENV_READY=1

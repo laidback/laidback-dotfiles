@@ -11,6 +11,15 @@ node_modules/
 *.local.yaml
 config.local
 
+# User secrets (sops/age managed). Plaintext lives at $LAIDBACK_CONFIG/secrets.env,
+# i.e. OUTSIDE this repo. These globs are belt-and-braces in case anyone
+# attempts to drop a copy inside the repo tree. The encrypted .sops variant
+# is intentionally NOT ignored — it is safe to commit.
+secrets.env
+**/secrets.env
+home/.config/laidback/secrets.env
+home/.config/sops/age/keys.txt
+
 # Corporate proxy CA (provided per-machine, not in git)
 ZscalerRootCA.pem
 
