@@ -44,6 +44,36 @@ fi
 # Create directories that stow will not create (stow only creates symlinks)
 mkdir -p "$HOME/.kube" "$HOME/.aws" "$HOME/.config/Code/User"
 mkdir -p "${XDG_PROJECTS_DIR:-$HOME/projects}"
+
+# Pre-create directories that hold runtime / secret state so stow does NOT
+# fold them into a single symlink pointing back into the repo. Without this,
+# the repo would receive writes from secrets:* tasks and similar (sops-encrypted
+# files, age keys, decrypted plaintext). Belt-and-braces: also un-fold an
+# existing folded symlink in case a previous bootstrap created one.
+_xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
+_unfold() {
+  local _dir="$1"
+  if [ -L "$_dir" ]; then
+    echo "bootstrap: un-folding stow-folded $_dir → real directory"
+    local _real
+    _real="$(readlink -f "$_dir" 2>/dev/null || readlink "$_dir")"
+    rm "$_dir"
+    mkdir -p "$_dir"
+    # If the symlink pointed inside the repo, copy any pre-existing files
+    # back out so we do not lose user state on re-bootstrap. .sops/.age
+    # files are user state, not repo content.
+    if [ -d "$_real" ] && [ "$_real" != "$_dir" ]; then
+      for _f in "$_real"/.sops.yaml "$_real"/secrets.env.sops "$_real"/keys.txt; do
+        [ -f "$_f" ] && [ ! -e "$_dir/$(basename "$_f")" ] && mv "$_f" "$_dir/" || true
+      done
+    fi
+  fi
+  mkdir -p "$_dir"
+}
+_unfold "$_xdg_config/laidback"
+_unfold "$_xdg_config/sops/age"
+chmod 700 "$_xdg_config/sops/age" 2>/dev/null || true
+
 # Stow home/ into $HOME.
 # --adopt: replace any existing plain files with the repo version first.
 # --restow: remove and re-create symlinks (idempotent re-run safe).
