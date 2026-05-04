@@ -1,4 +1,3 @@
-
 # ~/.profile — POSIX login shell configuration
 # Sourced by sh, bash (when no .bash_profile), and dash.
 # shellcheck shell=sh

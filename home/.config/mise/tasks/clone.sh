@@ -16,21 +16,21 @@ set -euo pipefail
 
 _url="${1:-}"
 if [ -z "$_url" ]; then
-    printf 'usage: mise run clone <git-url>\n' >&2
-    exit 2
+	printf 'usage: mise run clone <git-url>\n' >&2
+	exit 2
 fi
 
-_path="$(printf '%s' "$_url" \
-    | sed -E 's#^(https?://|ssh://git@|git@)##' \
-    | sed -E 's#:#/#' \
-    | sed -E 's#\.git$##')"
+_path="$(printf '%s' "$_url" |
+	sed -E 's#^(https?://|ssh://git@|git@)##' |
+	sed -E 's#:#/#' |
+	sed -E 's#\.git$##')"
 
 _target="$XDG_PROJECTS_DIR/$_path"
 
 if [ -d "$_target/.git" ]; then
-    printf 'clone: already at %s — pulling\n' "$_target"
-    git -C "$_target" pull --ff-only
-    exit $?
+	printf 'clone: already at %s — pulling\n' "$_target"
+	git -C "$_target" pull --ff-only
+	exit $?
 fi
 
 mkdir -p "$(dirname "$_target")"

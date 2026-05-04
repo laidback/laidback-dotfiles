@@ -23,12 +23,12 @@ XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
 if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
-    _uid="$(id -u 2>/dev/null || echo 0)"
-    case "$(uname -s)" in
-        Darwin) XDG_RUNTIME_DIR="${TMPDIR:-/tmp}/runtime-${_uid}" ;;
-        *)      XDG_RUNTIME_DIR="/run/user/${_uid}" ;;
-    esac
-    unset _uid
+	_uid="$(id -u 2>/dev/null || echo 0)"
+	case "$(uname -s)" in
+	Darwin) XDG_RUNTIME_DIR="${TMPDIR:-/tmp}/runtime-${_uid}" ;;
+	*) XDG_RUNTIME_DIR="/run/user/${_uid}" ;;
+	esac
+	unset _uid
 fi
 
 XDG_PROJECTS_DIR="${XDG_PROJECTS_DIR:-$HOME/projects}"

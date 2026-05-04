@@ -152,6 +152,9 @@ _require "stow: env.sh symlinked"      "[ -L \"$HOME/.config/shell/env.sh\" ]"  
 _check   "stow: mise/config.toml"      "[ -L \"$HOME/.config/mise/config.toml\" ]"    "not a symlink"
 _check   "stow: .zshrc"                "[ -L \"$HOME/.zshrc\" ]"                      "not a symlink"
 _check   "stow: .zprofile"             "[ -L \"$HOME/.zprofile\" ]"                   "not a symlink"
+_check   "stow: .bashrc"               "[ -L \"$HOME/.bashrc\" ]"                     "not a symlink"
+_check   "stow: .bash_profile"         "[ -L \"$HOME/.bash_profile\" ]"               "not a symlink"
+_check   "stow: starship.toml"         "[ -L \"$HOME/.config/starship.toml\" ]"       "not a symlink"
 _require "tool: mise"                  "command -v mise"                              "not in PATH"
 _require "tool: git"                   "command -v git"                               "not in PATH"
 _check   "tool: stow"                  "command -v stow"                              "run bootstrap to auto-install"
@@ -172,11 +175,11 @@ echo "======================================================================"
 
 [tasks."fmt"]
 description = "Format repository shell scripts"
-run = "shfmt -w install.sh home/.config/shell/env.sh home/.profile home/.zprofile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh"
+run = "shfmt -w install.sh home/.config/shell/env.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh"
 
 [tasks."shell:lint"]
 description = "Lint shell scripts"
-run = "shellcheck install.sh home/.config/shell/env.sh home/.profile home/.zprofile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh"
+run = "shellcheck install.sh home/.config/shell/env.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh"
 
 [tasks."docs:lint"]
 description = "Lint repository markdown docs"

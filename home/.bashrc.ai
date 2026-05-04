@@ -15,10 +15,10 @@ export PIP_NO_INPUT=1
 
 # Activate mise in bash if available
 if command -v mise >/dev/null 2>&1; then
-    eval "$(mise activate bash --shims)"
+	eval "$(mise activate bash --shims)"
 fi
 
 # Optional: launch a custom ai-bash wrapper if it exists
 if [ -x "$HOME/bin/ai-bash" ]; then
-    exec "$HOME/bin/ai-bash"
+	exec "$HOME/bin/ai-bash"
 fi
