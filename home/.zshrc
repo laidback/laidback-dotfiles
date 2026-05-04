@@ -13,10 +13,13 @@ ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
 if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
     source "$ZINIT_HOME/zinit.zsh"
 
-    # OMZ snippets (git aliases, directory helpers)
+    # OMZ snippets (git aliases, directory helpers, kube + zoxide integration)
     zinit snippet OMZL::git.zsh
     zinit snippet OMZL::directories.zsh
     zinit snippet OMZP::git
+    zinit snippet OMZP::kubectl
+    zinit snippet OMZP::kube-ps1
+    zinit snippet OMZP::zoxide
 
     # Core plugins — loaded asynchronously after first prompt
     zinit wait lucid for \
