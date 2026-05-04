@@ -1,9 +1,7 @@
 {
+	// Starter workspace — copied to laidback-system.code-workspace by `mise run bootstrap`.
+	// The live file is gitignored, so any folder you add here stays local.
 	"folders": [
-		{
-			"name": "laidback-system",
-			"path": "github.com/laidback/laidback-system"
-		},
 		{
 			"name": "laidback-dotfiles",
 			"path": "github.com/laidback/laidback-dotfiles"
