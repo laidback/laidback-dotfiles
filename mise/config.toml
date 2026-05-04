@@ -284,6 +284,158 @@ run = "actionlint .github/workflows/*.yml"
 description = "Verify sops and age are installed"
 run = "command -v sops >/dev/null 2>&1 && command -v age >/dev/null 2>&1 && echo 'security sops/age check: ok'"
 
+# ─── secrets:* — sops/age-managed user environment tokens ────────────────────
+# Lifecycle:
+#   secrets:init      → one-time: generate age keypair + .sops.yaml
+#   secrets:edit      → open the encrypted secrets file in $EDITOR via sops
+#   secrets:decrypt   → write plaintext to $LAIDBACK_CONFIG/secrets.env (0600)
+#   secrets:encrypt   → re-encrypt plaintext after manual edits (rare)
+#   secrets:status    → show which expected variables are present (no values)
+#
+# All paths live OUTSIDE this repo (under $LAIDBACK_CONFIG = $XDG_CONFIG_HOME/laidback)
+# so plaintext secrets cannot be accidentally committed here.
+
+[tasks."secrets:init"]
+description = "One-time: generate age keypair and seed sops + secrets layout"
+run = '''bash -c '
+set -euo pipefail
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${LAIDBACK_CONFIG:=$XDG_CONFIG_HOME/laidback}"
+command -v sops >/dev/null 2>&1 || { echo "secrets:init: sops not installed (run: mise install sops)" >&2; exit 1; }
+command -v age >/dev/null 2>&1  || { echo "secrets:init: age not installed (run: mise install age)"  >&2; exit 1; }
+command -v age-keygen >/dev/null 2>&1 || { echo "secrets:init: age-keygen not in PATH" >&2; exit 1; }
+
+_age_dir="$XDG_CONFIG_HOME/sops/age"
+_age_key="$_age_dir/keys.txt"
+mkdir -p "$_age_dir" "$LAIDBACK_CONFIG"
+chmod 700 "$_age_dir"
+
+if [ -s "$_age_key" ]; then
+  echo "secrets:init: age key already present at $_age_key (skipping)"
+else
+  age-keygen -o "$_age_key"
+  chmod 600 "$_age_key"
+  echo "secrets:init: generated age key at $_age_key"
+fi
+
+_pubkey="$(grep "^# public key:" "$_age_key" | awk "{print \$NF}")"
+[ -n "$_pubkey" ] || { echo "secrets:init: could not extract public key from $_age_key" >&2; exit 1; }
+
+_sops_cfg="$LAIDBACK_CONFIG/.sops.yaml"
+if [ -f "$_sops_cfg" ]; then
+  echo "secrets:init: $_sops_cfg already present (leaving as-is)"
+else
+  cat >"$_sops_cfg" <<EOF
+creation_rules:
+  - path_regex: secrets\\.env\\.sops$
+    age: $_pubkey
+EOF
+  echo "secrets:init: wrote $_sops_cfg (recipient: $_pubkey)"
+fi
+
+if [ ! -s "$LAIDBACK_CONFIG/secrets.env.sops" ] && [ -r "$HOME/.config/laidback/secrets.env.example" ]; then
+  cp "$HOME/.config/laidback/secrets.env.example" "$LAIDBACK_CONFIG/secrets.env.plain.tmp"
+  ( cd "$LAIDBACK_CONFIG" && sops --encrypt --age "$_pubkey" --input-type dotenv --output-type dotenv "$LAIDBACK_CONFIG/secrets.env.plain.tmp" ) > "$LAIDBACK_CONFIG/secrets.env.sops"
+  rm -f "$LAIDBACK_CONFIG/secrets.env.plain.tmp"
+  echo "secrets:init: seeded $LAIDBACK_CONFIG/secrets.env.sops from template"
+fi
+
+cat <<EOF
+
+next steps:
+  1) mise run secrets:edit       # fill in tokens (GITHUB_TOKEN, GLAB_TOKEN, ...)
+  2) mise run secrets:decrypt    # writes plaintext to $LAIDBACK_CONFIG/secrets.env (0600)
+  3) start a new shell           # env.sh auto-sources it
+  4) mise run secrets:status     # verify presence (no values printed)
+
+age public key (share / use as recipient on other machines):
+  $_pubkey
+EOF
+' '''
+
+[tasks."secrets:edit"]
+description = "Open encrypted secrets file ($LAIDBACK_CONFIG/secrets.env.sops) in sops"
+run = '''bash -c '
+set -euo pipefail
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${LAIDBACK_CONFIG:=$XDG_CONFIG_HOME/laidback}"
+_file="$LAIDBACK_CONFIG/secrets.env.sops"
+command -v sops >/dev/null 2>&1 || { echo "secrets:edit: sops not installed" >&2; exit 1; }
+[ -s "$_file" ] || { echo "secrets:edit: $_file not found — run: mise run secrets:init" >&2; exit 1; }
+SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$XDG_CONFIG_HOME/sops/age/keys.txt}" \
+  sops --input-type dotenv --output-type dotenv "$_file"
+echo "secrets:edit: $_file updated — run: mise run secrets:decrypt"
+' '''
+
+[tasks."secrets:decrypt"]
+description = "Decrypt secrets.env.sops to $LAIDBACK_CONFIG/secrets.env (0600); re-source shell to pick up"
+run = '''bash -c '
+set -euo pipefail
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${LAIDBACK_CONFIG:=$XDG_CONFIG_HOME/laidback}"
+_src="$LAIDBACK_CONFIG/secrets.env.sops"
+_dst="$LAIDBACK_CONFIG/secrets.env"
+command -v sops >/dev/null 2>&1 || { echo "secrets:decrypt: sops not installed" >&2; exit 1; }
+[ -s "$_src" ] || { echo "secrets:decrypt: $_src not found — run: mise run secrets:init" >&2; exit 1; }
+mkdir -p "$LAIDBACK_CONFIG"
+SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$XDG_CONFIG_HOME/sops/age/keys.txt}" \
+  sops --decrypt --input-type dotenv --output-type dotenv "$_src" > "$_dst"
+chmod 600 "$_dst"
+echo "secrets:decrypt: wrote $_dst (mode 600)"
+echo "secrets:decrypt: re-source your shell (or open a new terminal) to load it"
+' '''
+
+[tasks."secrets:encrypt"]
+description = "Re-encrypt $LAIDBACK_CONFIG/secrets.env -> secrets.env.sops (rare; sops:edit is preferred)"
+run = '''bash -c '
+set -euo pipefail
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${LAIDBACK_CONFIG:=$XDG_CONFIG_HOME/laidback}"
+_src="$LAIDBACK_CONFIG/secrets.env"
+_dst="$LAIDBACK_CONFIG/secrets.env.sops"
+command -v sops >/dev/null 2>&1 || { echo "secrets:encrypt: sops not installed" >&2; exit 1; }
+[ -s "$_src" ] || { echo "secrets:encrypt: $_src not found" >&2; exit 1; }
+SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$XDG_CONFIG_HOME/sops/age/keys.txt}" \
+  sops --encrypt --input-type dotenv --output-type dotenv "$_src" > "$_dst"
+echo "secrets:encrypt: wrote $_dst"
+' '''
+
+[tasks."secrets:status"]
+description = "Show which expected secret variables are present in current env (values masked)"
+run = '''bash -c '
+set -euo pipefail
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${LAIDBACK_CONFIG:=$XDG_CONFIG_HOME/laidback}"
+_template="$HOME/.config/laidback/secrets.env.example"
+_decrypted="$LAIDBACK_CONFIG/secrets.env"
+
+echo "secrets:status"
+printf "  %-30s %s\n" "template"  "$_template"
+printf "  %-30s %s\n" "decrypted" "$_decrypted"
+if [ -e "$_decrypted" ]; then
+  _mode="$(stat -f %A "$_decrypted" 2>/dev/null || stat -c %a "$_decrypted" 2>/dev/null || echo ?)"
+  printf "  %-30s mode=%s\n" "  permissions" "$_mode"
+  if [ "$_mode" != "600" ]; then
+    printf "  %-30s WARN: should be 600 — run: chmod 600 %s\n" "  permissions" "$_decrypted"
+  fi
+fi
+echo
+[ -r "$_template" ] || { echo "  no template found — run: mise run secrets:init" >&2; exit 0; }
+echo "  expected variables (from template):"
+while IFS= read -r _line; do
+  case "$_line" in
+    ""|"#"*) continue ;;
+  esac
+  _var="${_line%%=*}"
+  [ -n "$_var" ] || continue
+  if eval "[ -n \"\${$_var:-}\" ]"; then
+    printf "    %-30s SET\n" "$_var"
+  else
+    printf "    %-30s missing\n" "$_var"
+  fi
+done < "$_template"
+' '''
+
 [tasks."lint"]
 description = "Run all repository linters"
 depends = ["shell:lint", "docs:lint", "json:lint", "docker:lint", "ci:workflow-validate"]

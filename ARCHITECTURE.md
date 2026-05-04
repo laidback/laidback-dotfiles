@@ -113,8 +113,36 @@ to introspect a project's languages, services, and ports.
 
 ### Security
 
-- Secret tooling: `sops`, `age`
-- Task gate: `mise run security:sops-check`
+User secrets are managed by `sops` + `age` and live OUTSIDE this repo, under
+`$LAIDBACK_CONFIG/` (= `$XDG_CONFIG_HOME/laidback/`):
+
+```text
+$LAIDBACK_CONFIG/
+├── .sops.yaml          # creation_rules — recipient (age public key) per file pattern
+├── secrets.env.sops    # encrypted dotenv (safe to commit to a private repo)
+└── secrets.env         # decrypted plaintext, mode 0600 (NEVER commit)
+
+$XDG_CONFIG_HOME/sops/age/
+└── keys.txt            # age private key, mode 0600 (NEVER commit)
+```
+
+The lifecycle is wrapped by `secrets:*` mise tasks (`init`, `edit`, `decrypt`,
+`encrypt`, `status`); `home/.config/shell/env.sh` auto-sources the decrypted
+file at shell start and refuses to load it if the mode is more permissive than
+`0600`/`0400`. The canonical variable list is the safe-to-commit template
+`home/.config/laidback/secrets.env.example`.
+
+Why secrets are storage-isolated from this repo:
+
+- `$LAIDBACK_CONFIG` is outside the git tree, so `git add` cannot reach it.
+- `.gitignore` belt-and-braces matches `secrets.env` everywhere and the age
+  keyfile, so even an accidentally-placed copy inside the repo is untracked.
+- The encrypted `.sops` file IS safe to commit — sharing it is the recommended
+  multi-machine flow.
+
+- Tooling: `sops`, `age`
+- Install gate: `mise run security:sops-check`
+- Lifecycle gate: `mise run secrets:status` (no values printed)
 
 ## Task Topology
 
@@ -128,6 +156,15 @@ Global tasks (anywhere, post-bootstrap):
 - `dotfiles:doctor` — health checks
 - `projects:clone <git-url>` — forge-deterministic clone
 - `projects:fingerprint [path]` — language / service / port detection
+
+Repo-local but globally relevant (run from inside the dotfiles repo):
+
+- `secrets:init` — generate age keypair + `.sops.yaml`, seed encrypted file from template
+- `secrets:edit` — open `$LAIDBACK_CONFIG/secrets.env.sops` in `$EDITOR` via sops
+- `secrets:decrypt` — write plaintext to `$LAIDBACK_CONFIG/secrets.env` (mode 0600)
+- `secrets:encrypt` — re-encrypt plaintext after manual edits (rare)
+- `secrets:status` — show present/missing variables (no values)
+- `security:sops-check` — verify sops + age install
 
 Repository tasks (run from inside the cloned dotfiles repo):
 
