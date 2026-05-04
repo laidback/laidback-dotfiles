@@ -37,6 +37,8 @@ home/.kube/
 home/.config/glab-cli/
 home/.config/.jira.d/
 home/projects/*.code-workspace
-# Exception: the canonical multi-root workspace ships with the dotfiles
-!home/projects/laidback-system.code-workspace
+# Exception: the workspace STARTER (.example) ships with the dotfiles.
+# The live .code-workspace is materialised by `mise run bootstrap` and stays
+# local — user edits never touch the repo.
+!home/projects/*.code-workspace.example
 home/projects/mise/

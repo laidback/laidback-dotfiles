@@ -83,6 +83,22 @@ echo "bootstrap: home/ stowed into $HOME"
 # pre-existing $HOME/projects/laidback-system.code-workspace overwriting the
 # repo version). The dotfiles repo stays the source of truth.
 git restore home >/dev/null 2>&1 || true
+
+# VS Code workspace file: copy starter to the live filename if missing.
+# The live file is gitignored so user edits never touch the repo. A leftover
+# broken symlink (from earlier bootstraps that stowed the file directly) is
+# replaced.
+_proj_dir="${XDG_PROJECTS_DIR:-$HOME/projects}"
+_ws_live="$_proj_dir/laidback-system.code-workspace"
+_ws_starter="$_proj_dir/laidback-system.code-workspace.example"
+if [ -L "$_ws_live" ] && [ ! -e "$_ws_live" ]; then
+  rm "$_ws_live"
+fi
+if [ ! -e "$_ws_live" ] && [ -e "$_ws_starter" ]; then
+  cp "$_ws_starter" "$_ws_live"
+  echo "bootstrap: copied workspace starter → $_ws_live (edit freely; not tracked)"
+fi
+
 # Ensure stowed task scripts are executable.
 chmod +x "$HOME/.config/mise/tasks/dotfiles/"*.sh "$HOME/.config/mise/tasks/projects/"*.sh 2>/dev/null || true
 echo "bootstrap: global mise tasks ready at ~/.config/mise/tasks/{dotfiles,projects}/"
