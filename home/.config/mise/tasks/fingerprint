@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @description: Quick project fingerprint — language, services, ports.
+#MISE description="Quick project fingerprint (language, services, ports)"
 #
 # Detects:
 #   - Languages from common project files (package.json, go.mod, pyproject.toml,
