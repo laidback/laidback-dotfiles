@@ -54,8 +54,8 @@ echo "bootstrap: home/ stowed into $HOME"
 # repo version). The dotfiles repo stays the source of truth.
 git restore home >/dev/null 2>&1 || true
 # Ensure stowed task scripts are executable.
-chmod +x "$HOME/.config/mise/tasks/"*.sh "$HOME/.config/mise/tasks/dotfiles/"*.sh 2>/dev/null || true
-echo "bootstrap: global mise tasks ready at ~/.config/mise/tasks/"
+chmod +x "$HOME/.config/mise/tasks/dotfiles/"*.sh "$HOME/.config/mise/tasks/projects/"*.sh 2>/dev/null || true
+echo "bootstrap: global mise tasks ready at ~/.config/mise/tasks/{dotfiles,projects}/"
 ' '''
 
 [tasks."status"]
@@ -160,7 +160,8 @@ _check   "stow: .bashrc"               "[ -L \"$HOME/.bashrc\" ]"               
 _check   "stow: .bash_profile"         "[ -L \"$HOME/.bash_profile\" ]"               "not a symlink"
 _check   "stow: starship.toml"         "[ -L \"$HOME/.config/starship.toml\" ]"       "not a symlink"
 _check   "stow: motd.sh"               "[ -L \"$HOME/.config/shell/motd.sh\" ]"       "not a symlink"
-_check   "stow: fingerprint task"      "[ -L \"$HOME/.config/mise/tasks/fingerprint\" ] || [ -e \"$HOME/.config/mise/tasks/fingerprint\" ]"  "not present"
+_check   "stow: projects:clone"        "[ -L \"$HOME/.config/mise/tasks/projects/clone.sh\" ] || [ -e \"$HOME/.config/mise/tasks/projects/clone.sh\" ]"  "not present"
+_check   "stow: projects:fingerprint"  "[ -L \"$HOME/.config/mise/tasks/projects/fingerprint.sh\" ] || [ -e \"$HOME/.config/mise/tasks/projects/fingerprint.sh\" ]"  "not present"
 _require "tool: mise"                  "command -v mise"                              "not in PATH"
 _require "tool: git"                   "command -v git"                               "not in PATH"
 _check   "tool: stow"                  "command -v stow"                              "run bootstrap to auto-install"
@@ -181,14 +182,17 @@ echo "======================================================================"
 
 [tasks."fmt"]
 description = "Format repository shell scripts"
-run = "shfmt -w install.sh home/.config/shell/env.sh home/.config/shell/motd.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/fingerprint home/.config/mise/tasks/dotfiles/*.sh"
+run = "shfmt -w install.sh home/.config/shell/env.sh home/.config/shell/motd.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/dotfiles/*.sh home/.config/mise/tasks/projects/*.sh"
 
 [tasks."shell:lint"]
 description = "Lint shell scripts"
-run = "shellcheck install.sh home/.config/shell/env.sh home/.config/shell/motd.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/clone.sh home/.config/mise/tasks/fingerprint home/.config/mise/tasks/dotfiles/*.sh"
+run = "shellcheck install.sh home/.config/shell/env.sh home/.config/shell/motd.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/dotfiles/*.sh home/.config/mise/tasks/projects/*.sh"
 
-# fingerprint task is auto-discovered as a global mise file task at
-# ~/.config/mise/tasks/fingerprint (stowed). Invoke as: mise run fingerprint
+# Global namespaced mise tasks (auto-discovered after bootstrap stows them):
+#   mise run dotfiles:status        — environment + symlink status
+#   mise run dotfiles:doctor        — health checks
+#   mise run projects:clone <url>   — clone into $XDG_PROJECTS_DIR/<forge>/<group>/<project>
+#   mise run projects:fingerprint   — quick project introspection (langs, services, ports)
 
 [tasks."docs:lint"]
 description = "Lint repository markdown docs"
