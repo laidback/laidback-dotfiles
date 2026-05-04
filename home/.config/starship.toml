@@ -1,4 +1,5 @@
 format = """
+$shell$shlvl\
 $directory \
 $git_branch$git_status$git_commit \
 $env_var \
@@ -107,4 +108,35 @@ style = 'dimmed yellow'
 format = '[$symbol]($style) '
 symbol = '⬡'
 style = 'red dimmed'
+
+# ── Shell + nesting indicators ─────────────────────────────────────
+# Show which interpreter the prompt belongs to (zsh/bash/fish/...) and how
+# deep the shell-in-shell nesting is. Together they make `bash`-from-`zsh`
+# (or vice-versa) immediately visible, which is the visual signal the
+# directory-aware MOTD intentionally does not provide for human mode.
+
+[shell]
+disabled = false
+bash_indicator = 'bash'
+zsh_indicator = 'zsh'
+fish_indicator = 'fish'
+powershell_indicator = 'pwsh'
+ion_indicator = 'ion'
+elvish_indicator = 'elvish'
+tcsh_indicator = 'tcsh'
+xonsh_indicator = 'xonsh'
+cmd_indicator = 'cmd'
+nu_indicator = 'nu'
+unknown_indicator = 'sh'
+format = '[\[$indicator\]]($style) '
+style = 'cyan bold'
+
+[shlvl]
+# Only show when nested (running a shell inside a shell). SHLVL=1 stays
+# clean so a fresh terminal has zero noise.
+disabled = false
+threshold = 2
+symbol = '↕'
+format = '[$symbol$shlvl]($style) '
+style = 'yellow bold'
 
