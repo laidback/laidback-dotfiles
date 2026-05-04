@@ -102,7 +102,7 @@ USER ${USERNAME}
 
 # Install toolchain, run bootstrap, then validate.
 RUN mise install --yes \
-    && chmod +x install.sh home/.config/mise/tasks/clone.sh home/.config/mise/tasks/dotfiles/*.sh \
+    && chmod +x install.sh home/.config/mise/tasks/dotfiles/*.sh home/.config/mise/tasks/projects/*.sh \
     # syntax-check all shell scripts
     && bash -n install.sh \
     && find home/.config/mise/tasks -name '*.sh' -exec bash -n {} \; \
@@ -114,9 +114,10 @@ RUN mise install --yes \
     # verify env.sh is now a symlink (stow worked)
     && test -L "$HOME/.config/shell/env.sh" \
     # verify global tasks are reachable as symlinks
-    && test -x "$HOME/.config/mise/tasks/clone.sh" \
     && test -x "$HOME/.config/mise/tasks/dotfiles/status.sh" \
     && test -x "$HOME/.config/mise/tasks/dotfiles/doctor.sh" \
+    && test -x "$HOME/.config/mise/tasks/projects/clone.sh" \
+    && test -x "$HOME/.config/mise/tasks/projects/fingerprint.sh" \
     # run status and doctor as final smoke tests
     && bash "$HOME/.config/mise/tasks/dotfiles/status.sh" \
     && bash "$HOME/.config/mise/tasks/dotfiles/doctor.sh"
