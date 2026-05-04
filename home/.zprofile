@@ -7,6 +7,6 @@
 
 # kubectl shell completion (optional — only if the file exists)
 if [ -f "$HOME/.config/laidback/shell/kubectl.zsh.sh" ]; then
-    # shellcheck disable=SC1090
-    . "$HOME/.config/laidback/shell/kubectl.zsh.sh"
+	# shellcheck disable=SC1090
+	. "$HOME/.config/laidback/shell/kubectl.zsh.sh"
 fi
