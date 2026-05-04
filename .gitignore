@@ -18,7 +18,10 @@ config.local
 secrets.env
 **/secrets.env
 home/.config/laidback/secrets.env
+home/.config/laidback/secrets.env.sops
+home/.config/laidback/.sops.yaml
 home/.config/sops/age/keys.txt
+home/.config/sops/
 
 # Corporate proxy CA (provided per-machine, not in git)
 ZscalerRootCA.pem
