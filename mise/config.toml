@@ -334,9 +334,15 @@ EOF
 fi
 
 if [ ! -s "$LAIDBACK_CONFIG/secrets.env.sops" ] && [ -r "$HOME/.config/laidback/secrets.env.example" ]; then
-  cp "$HOME/.config/laidback/secrets.env.example" "$LAIDBACK_CONFIG/secrets.env.plain.tmp"
-  ( cd "$LAIDBACK_CONFIG" && sops --encrypt --age "$_pubkey" --input-type dotenv --output-type dotenv "$LAIDBACK_CONFIG/secrets.env.plain.tmp" ) > "$LAIDBACK_CONFIG/secrets.env.sops"
-  rm -f "$LAIDBACK_CONFIG/secrets.env.plain.tmp"
+  _tmp_plain="$LAIDBACK_CONFIG/secrets.env.plain.tmp"
+  cp "$HOME/.config/laidback/secrets.env.example" "$_tmp_plain"
+  chmod 600 "$_tmp_plain"
+  # --filename-override is required so .sops.yaml creation_rules (which match
+  # secrets\.env\.sops$) apply to the temp file we are encrypting.
+  ( cd "$LAIDBACK_CONFIG" && sops --encrypt --age "$_pubkey" \
+      --input-type dotenv --output-type dotenv \
+      --filename-override secrets.env.sops "$_tmp_plain" ) > "$LAIDBACK_CONFIG/secrets.env.sops"
+  rm -f "$_tmp_plain"
   echo "secrets:init: seeded $LAIDBACK_CONFIG/secrets.env.sops from template"
 fi
 
