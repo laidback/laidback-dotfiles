@@ -25,4 +25,6 @@ home/.kube/
 home/.config/glab-cli/
 home/.config/.jira.d/
 home/projects/*.code-workspace
+# Exception: the canonical multi-root workspace ships with the dotfiles
+!home/projects/laidback-system.code-workspace
 home/projects/mise/

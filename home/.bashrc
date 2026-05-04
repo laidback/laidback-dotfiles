@@ -13,13 +13,22 @@ case $- in
 esac
 
 # ── Starship prompt ─────────────────────────────────────────────────────────
-if command -v starship >/dev/null 2>&1; then
+# starship needs bash 4+. macOS ships /bin/bash 3.2 — skip silently there.
+# To get a modern bash on macOS:  brew install bash  (or use a mise plugin).
+if command -v starship >/dev/null 2>&1 &&
+	[ "${BASH_VERSINFO[0]:-0}" -ge 4 ]; then
 	eval "$(starship init bash)"
 fi
 
 # ── Mise (tool version manager) ─────────────────────────────────────────────
+# `mise activate bash` uses bash 4+ features in its prompt hooks. Fall back to
+# shims-only mode on bash 3.2 so the shell still works (matches .bashrc.ai).
 if command -v mise >/dev/null 2>&1; then
-	eval "$(mise activate bash)"
+	if [ "${BASH_VERSINFO[0]:-0}" -ge 4 ]; then
+		eval "$(mise activate bash)"
+	else
+		eval "$(mise activate bash --shims)"
+	fi
 fi
 
 # ── History ─────────────────────────────────────────────────────────────────
@@ -58,3 +67,13 @@ alias ll='ls -lah'
 alias la='ls -A'
 alias ..='cd ..'
 alias ...='cd ../..'
+
+# ── MOTD (directory-aware, mode-aware) ──────────────────────────────────────
+# Silent unless cwd changed since last shown.
+if [ -f "$HOME/.config/shell/motd.sh" ]; then
+	__laidback_motd() { . "$HOME/.config/shell/motd.sh"; }
+	case ";${PROMPT_COMMAND:-};" in
+	*";__laidback_motd;"*) ;;
+	*) PROMPT_COMMAND="__laidback_motd${PROMPT_COMMAND:+;$PROMPT_COMMAND}" ;;
+	esac
+fi

@@ -70,16 +70,13 @@ alias la='ls -A'
 alias ..='cd ..'
 alias ...='cd ../..'
 
-# ── MOTD ─────────────────────────────────────────────────────────────────────
-_motd() {
-    printf "\n"
-    printf "  laidback   %s @ %s\n" "${LAIDBACK_FORGE:-laidback}" "$(uname -n)"
-    printf "  dotfiles   %s\n"  "${LAIDBACK_DOTFILES_ROOT:-~/.config}"
-    printf "  projects   %s\n"  "${XDG_PROJECTS_DIR:-~/projects}"
-    if command -v mise >/dev/null 2>&1; then
-        printf "  mise       %s\n" "$(mise --version 2>/dev/null | cut -d' ' -f1)"
+# ── MOTD (directory-aware, mode-aware) ──────────────────────────────────────
+# Silent unless cwd changed since last shown.
+if [ -f "$HOME/.config/shell/motd.sh" ]; then
+    autoload -U add-zsh-hook 2>/dev/null
+    _laidback_motd() { . "$HOME/.config/shell/motd.sh"; }
+    if typeset -f add-zsh-hook >/dev/null 2>&1; then
+        add-zsh-hook chpwd  _laidback_motd
+        add-zsh-hook precmd _laidback_motd
     fi
-    printf "\n"
-}
-_motd
-unset -f _motd
+fi

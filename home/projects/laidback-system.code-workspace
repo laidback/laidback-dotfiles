@@ -1,0 +1,67 @@
+{
+	"folders": [
+		{
+			"name": "laidback-system",
+			"path": "github.com/laidback/laidback-system"
+		},
+		{
+			"name": "laidback-dotfiles",
+			"path": "github.com/laidback/laidback-dotfiles"
+		}
+	],
+	"settings": {
+		"terminal.integrated.defaultProfile.osx": "zsh",
+		"terminal.integrated.defaultProfile.linux": "zsh",
+		"terminal.integrated.profiles.osx": {
+			"zsh": {
+				"path": "zsh",
+				"args": ["-l"]
+			},
+			"bash": {
+				"path": "bash",
+				"args": ["-l"]
+			},
+			"ai-bash": {
+				"path": "bash",
+				"args": ["--rcfile", "${env:HOME}/.bashrc.ai", "-i"],
+				"env": {
+					"LAIDBACK_EXECUTION_MODE": "ai"
+				}
+			}
+		},
+		"terminal.integrated.env.osx": {
+			"LAIDBACK_EXECUTION_MODE": "human"
+		},
+		"files.associations": {
+			"*.skillspec.yaml": "yaml",
+			"mise.toml": "toml",
+			".envrc": "shellscript"
+		},
+		"files.exclude": {
+			"**/.git": true,
+			"**/.DS_Store": true,
+			"**/node_modules": true,
+			"**/dist": true
+		},
+		"editor.formatOnSave": true,
+		"editor.rulers": [100],
+		"[shellscript]": {
+			"editor.defaultFormatter": "foxundermoon.shell-format"
+		},
+		"[markdown]": {
+			"editor.wordWrap": "on"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"foxundermoon.shell-format",
+			"timonwong.shellcheck",
+			"davidanson.vscode-markdownlint",
+			"redhat.vscode-yaml",
+			"tamasfe.even-better-toml",
+			"github.vscode-pull-request-github",
+			"github.copilot",
+			"github.copilot-chat"
+		]
+	}
+}
