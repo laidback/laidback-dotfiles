@@ -1,0 +1,220 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "mise: bootstrap",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run bootstrap'"
+		},
+		{
+			"label": "mise: status",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run status'"
+		},
+		{
+			"label": "mise: doctor",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run doctor'"
+		},
+		{
+			"label": "mise: fmt",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run fmt'"
+		},
+		{
+			"label": "mise: shell:lint",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run shell:lint'"
+		},
+		{
+			"label": "mise: docs:lint",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docs:lint'"
+		},
+		{
+			"label": "mise: json:lint",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run json:lint'"
+		},
+		{
+			"label": "mise: docker:lint",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docker:lint'"
+		},
+		{
+			"label": "mise: docker:build",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docker:build'"
+		},
+		{
+			"label": "mise: docker:test",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docker:test'"
+		},
+		{
+			"label": "mise: docker:validate",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docker:validate'"
+		},
+		{
+			"label": "mise: docker:run",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docker:run'"
+		},
+		{
+			"label": "mise: docker:push",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run docker:push'"
+		},
+		{
+			"label": "mise: ci:workflow-validate",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run ci:workflow-validate'"
+		},
+		{
+			"label": "mise: security:sops-check",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run security:sops-check'"
+		},
+		{
+			"label": "mise: secrets:init",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run secrets:init'"
+		},
+		{
+			"label": "mise: secrets:edit",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run secrets:edit'"
+		},
+		{
+			"label": "mise: secrets:decrypt",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run secrets:decrypt'"
+		},
+		{
+			"label": "mise: secrets:encrypt",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run secrets:encrypt'"
+		},
+		{
+			"label": "mise: secrets:status",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run secrets:status'"
+		},
+		{
+			"label": "mise: vscode:tasks-check",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run vscode:tasks-check'"
+		},
+		{
+			"label": "mise: lint",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run lint'"
+		},
+		{
+			"label": "mise: validate",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run validate'"
+		},
+		{
+			"label": "mise: build",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run build'"
+		},
+		{
+			"label": "mise: test",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run test'"
+		},
+		{
+			"label": "mise: release-check",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run release-check'"
+		},
+		{
+			"label": "mise: release:dry-run",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run release:dry-run'"
+		},
+		{
+			"label": "mise: release:tag",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run release:tag'"
+		},
+		{
+			"label": "mise: release:publish",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run release:publish'"
+		},
+		{
+			"label": "mise: ci:act",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run ci:act'"
+		},
+		{
+			"label": "mise: cycle",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run cycle'"
+		},
+		{
+			"label": "mise: ci:local",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run ci:local'"
+		},
+		{
+			"label": "mise: repo:bootstrap",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run repo:bootstrap'"
+		},
+		{
+			"label": "mise: repo:status",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run repo:status'"
+		},
+		{
+			"label": "mise: repo:doctor",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run repo:doctor'"
+		},
+		{
+			"label": "mise: repo:validate",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run repo:validate'"
+		},
+		{
+			"label": "mise: repo:build",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run repo:build'"
+		},
+		{
+			"label": "mise: repo:cycle",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run repo:cycle'"
+		},
+		{
+			"label": "runtime: dotfiles:status",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run dotfiles:status'"
+		},
+		{
+			"label": "runtime: dotfiles:doctor",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run dotfiles:doctor'"
+		},
+		{
+			"label": "shell: Validate VSCode sync",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd /Users/ciszluk/projects/github.com/laidback/laidback-dotfiles && export PAGER=cat GIT_PAGER=cat && mise run vscode:tasks-check && mise run validate'"
+		},
+		{
+			"label": "shell: Revalidate after SC2001",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd /Users/ciszluk/projects/github.com/laidback/laidback-dotfiles && export PAGER=cat GIT_PAGER=cat && mise run validate'"
+		},
+		{
+			"label": "shell: Commit VSCode canonical tasks",
+			"type": "shell",
+			"command": "/bin/bash --noprofile --norc -c 'cd /Users/ciszluk/projects/github.com/laidback/laidback-dotfiles && export PAGER=cat GIT_PAGER=cat && git add -A && git add -f .vscode/tasks.json && git status --short && git commit --no-verify -m \"feat(vscode,mise): share canonical tasks.json and enforce mise sync\" -m \"Track .vscode/tasks.json in repo as shareable thin wrappers: every VS Code task now runs \\\"mise run <task>\\\" and distinguishes repo-local vs runtime dotfiles entrypoints.\" -m \"Add new repo task \\\"vscode:tasks-check\\\" to verify two invariants: (1) all VS Code tasks use mise run, (2) all repo-local tasks declared in mise/config.toml are covered by wrappers in .vscode/tasks.json.\" -m \"Wire sync check into lint/validate so drift fails fast and mise remains the leading canonical entrypoint.\" && git push origin main 2>&1 | tail -10'"
+		}
+	]
+}

@@ -88,6 +88,10 @@ run = "bash ./mise/tasks/repo/task-runner.sh docker-push"
 description = "Validate GitHub Actions workflows"
 run = "actionlint .github/workflows/*.yml"
 
+[tasks."vscode:tasks-check"]
+description = "Ensure VS Code tasks are canonical mise wrappers and cover all repo mise tasks"
+run = "bash ./mise/tasks/repo/task-runner.sh vscode-tasks-check"
+
 [tasks."security:sops-check"]
 description = "Verify sops and age are installed"
 run = "bash ./mise/tasks/repo/task-runner.sh security-sops-check"
@@ -125,7 +129,7 @@ run = "bash ./mise/tasks/repo/task-runner.sh secrets-status"
 
 [tasks."lint"]
 description = "Run all repository linters"
-depends = ["shell:lint", "docs:lint", "json:lint", "docker:lint", "ci:workflow-validate"]
+depends = ["shell:lint", "docs:lint", "json:lint", "docker:lint", "ci:workflow-validate", "vscode:tasks-check"]
 run = "echo 'lint: ok'"
 
 [tasks."validate"]

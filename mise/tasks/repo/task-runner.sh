@@ -521,6 +521,45 @@ run_ci_act() {
   act -W .github/workflows/ci.yml
 }
 
+run_vscode_tasks_check() {
+  _vscode_file=".vscode/tasks.json"
+  _mise_file="mise/config.toml"
+
+  [ -f "$_vscode_file" ] || { echo "vscode:tasks-check: missing $_vscode_file" >&2; exit 1; }
+  [ -f "$_mise_file" ] || { echo "vscode:tasks-check: missing $_mise_file" >&2; exit 1; }
+  command -v jq >/dev/null 2>&1 || { echo "vscode:tasks-check: jq is required" >&2; exit 1; }
+
+  _non_mise_labels="$(jq -r '.tasks[] | select((.command // "") | contains("mise run ") | not) | .label' "$_vscode_file")"
+  if [ -n "$_non_mise_labels" ]; then
+    echo "vscode:tasks-check: FAIL - non-canonical VS Code tasks found (must use 'mise run')" >&2
+    while IFS= read -r _label; do
+      [ -n "$_label" ] && echo "  - $_label" >&2
+    done <<< "$_non_mise_labels"
+    exit 1
+  fi
+
+  _vscode_tasks="$(jq -r '.tasks[].command // empty' "$_vscode_file" | grep -oE "mise run [^[:space:]\"']+" | awk '{print $3}' | sort -u || true)"
+  _repo_tasks="$(grep -E '^\[tasks\."[^"]+"\]' "$_mise_file" | sed -E 's/^\[tasks\."([^"]+)"\].*/\1/' | sort -u)"
+
+  _missing=0
+  while IFS= read -r _task; do
+    [ -n "$_task" ] || continue
+    if ! printf '%s\n' "$_vscode_tasks" | grep -qx "$_task"; then
+      if [ "$_missing" -eq 0 ]; then
+        echo "vscode:tasks-check: FAIL - missing VS Code wrappers for repo mise tasks:" >&2
+      fi
+      echo "  - $_task" >&2
+      _missing=1
+    fi
+  done <<< "$_repo_tasks"
+
+  if [ "$_missing" -ne 0 ]; then
+    exit 1
+  fi
+
+  echo "vscode:tasks-check: ok"
+}
+
 case "$_task" in
   bootstrap) run_bootstrap ;;
   status) run_status ;;
@@ -543,6 +582,7 @@ case "$_task" in
   release-tag) run_release_tag ;;
   release-publish) run_release_publish ;;
   ci-act) run_ci_act ;;
+  vscode-tasks-check) run_vscode_tasks_check ;;
   *)
     echo "unknown task: $_task" >&2
     exit 1
