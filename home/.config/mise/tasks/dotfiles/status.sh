@@ -60,8 +60,23 @@ _sym ".zprofile" "$HOME/.zprofile"
 _sym ".profile" "$HOME/.profile"
 _sym "git/config" "$HOME/.config/git/config"
 _sym "git/ignore" "$HOME/.config/git/ignore"
-_sym "git/work.config" "$HOME/.config/git/work.config"
 _sym "git/attributes" "$HOME/.config/git/attributes"
+_sym ".vimrc" "$HOME/.vimrc"
+echo ""
+
+echo "  git identity"
+_git_name="$(git config --global user.name 2>/dev/null || true)"
+_git_email="$(git config --global user.email 2>/dev/null || true)"
+printf "  %-22s %s\n" "user.name" "${_git_name:-(not set — see CONFIGURATION.md)}"
+printf "  %-22s %s\n" "user.email" "${_git_email:-(not set — see CONFIGURATION.md)}"
+_found_forge=0
+for _cfg in "$HOME/.config/git/"*.config; do
+	[ -f "$_cfg" ] || continue
+	[ "${_cfg##*/}" = "config" ] && continue
+	printf "  %-22s %s\n" "forge config" "$(basename "$_cfg")"
+	_found_forge=$((_found_forge + 1))
+done
+[ "$_found_forge" -eq 0 ] && printf "  %-22s %s\n" "forge configs" "(none — see CONFIGURATION.md)"
 echo ""
 
 _file() {

@@ -51,10 +51,15 @@ _check "stow: .zprofile" "[ -L \"$HOME/.zprofile\" ]" "not a symlink"
 _check "stow: .profile" "[ -L \"$HOME/.profile\" ]" "not a symlink"
 _check "stow: git/config" "[ -L \"$HOME/.config/git/config\" ]" "not a symlink; run: mise run bootstrap"
 _check "stow: git/ignore" "[ -L \"$HOME/.config/git/ignore\" ]" "not a symlink; run: mise run bootstrap"
-_check "stow: git/work.config" "[ -L \"$HOME/.config/git/work.config\" ]" "not a symlink; run: mise run bootstrap"
 _check "stow: git/attributes" "[ -L \"$HOME/.config/git/attributes\" ]" "not a symlink; run: mise run bootstrap"
 _check "stow: git/hooks dir" "[ -d \"$HOME/.config/git/hooks\" ]" "not a directory; run: mise run bootstrap"
 _check "git: no plain ~/.gitconfig" "[ ! -f \"$HOME/.gitconfig\" ] || [ -L \"$HOME/.gitconfig\" ]" "plain file overrides XDG config; run: mise run bootstrap"
+_check "git: user.name configured" \
+	"git config --global user.name 2>/dev/null | grep -q ." \
+	"not set; see CONFIGURATION.md → Git Identity"
+_check "git: user.email configured" \
+	"git config --global user.email 2>/dev/null | grep -q ." \
+	"not set; see CONFIGURATION.md → Git Identity"
 _check "stow: .vimrc" "[ -L \"$HOME/.vimrc\" ]" "not a symlink; run: mise run bootstrap"
 
 # Shell foundation

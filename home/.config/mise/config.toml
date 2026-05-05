@@ -12,6 +12,7 @@ fd      = "latest"
 bat     = "latest"
 delta   = "latest"
 zoxide  = "latest"
+flux2 = "2.8.3"
 
 [settings]
 verbose = false

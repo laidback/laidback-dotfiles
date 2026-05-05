@@ -66,50 +66,87 @@ the environment always wins.
 
 ## Git Identity
 
-The default identity in `~/.config/git/config` is your **personal** one.
-Repository-local identity is resolved by **forge path** — no manual `git
-config user.email` per repo required.
+After a fresh install **no git identity is configured** — the stowed
+`~/.config/git/config` contains sane defaults but intentionally no `name` or
+`email`.  git will warn on the first commit until you add one.
 
-### Default setup
+Identity configuration lives **outside this repo** so this repo is safe to
+fork, make public, and share.  `dotfiles:status` and `dotfiles:doctor`
+detect whatever you have configured and surface it automatically.
 
-| Forge path | Identity |
-| --- | --- |
-| `~/projects/github.com/…` | personal (`lukas.ciszewski@gmail.com`) |
-| `~/projects/git.buts.hilti.cloud/…` | work (`Lukas.Ciszewski@Hilti.com`) |
+### Option A — Single identity (simplest)
 
-This is implemented via git's `includeIf "gitdir:"` in
-`home/.config/git/config`:
+If you use one name and email everywhere:
 
-```ini
-[includeIf "gitdir:~/projects/git.buts.hilti.cloud/"]
-  path = ~/.config/git/work.config
+```bash
+git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"
 ```
 
-The matched override lives in `home/.config/git/work.config`.
+This writes directly into `~/.config/git/config` (which is stowed from the
+repo).  The change is recorded in your fork of the dotfiles.  Do not push it
+to a public fork unless you want your email public.
 
-### Adding another forge identity
+### Option B — Per-forge identity (recommended)
 
-1. Add a block to `home/.config/git/config`:
+Repos live at `$XDG_PROJECTS_DIR/<forge>/<group>/<project>`.  git can select
+a different identity per forge using `includeIf "gitdir:"`.  The override
+files are **not part of this repo** — create them directly at
+`~/.config/git/<forge>.config`.
 
-   ```ini
-   [includeIf "gitdir:~/projects/git.mycompany.com/"]
-     path = ~/.config/git/mycompany.config
-   ```
+**Step 1** — Create a config file per forge (examples):
 
-2. Create `home/.config/git/mycompany.config`:
+```bash
+# Personal forge (e.g. github.com)
+cat > ~/.config/git/github.config <<'EOF'
+[user]
+  name  = Your Name
+  email = you@personal.com
+EOF
 
-   ```ini
-   [user]
-     name  = Your Name
-     email = you@mycompany.com
-   ```
+# Work forge
+cat > ~/.config/git/mycompany.config <<'EOF'
+[user]
+  name  = Your Name
+  email = you@company.com
+EOF
+```
 
-3. Restow: `mise run bootstrap`
+**Step 2** — Add `includeIf` blocks to `home/.config/git/config` (the stowed
+file) so git knows which config file to load for each forge:
 
-> **Note on custom `XDG_PROJECTS_DIR`:** git expands `~` in `gitdir:` patterns
-> but does **not** expand environment variables. If you override
-> `XDG_PROJECTS_DIR`, you must also update the `gitdir:` paths in
-> `home/.config/git/config` to match your chosen root.
+```ini
+[includeIf "gitdir:~/projects/github.com/"]
+  path = ~/.config/git/github.config
+
+[includeIf "gitdir:~/projects/git.mycompany.com/"]
+  path = ~/.config/git/mycompany.config
+```
+
+**Step 3** — Restow and verify:
+
+```bash
+mise run bootstrap
+git config user.name          # shows the identity for the current directory
+mise run dotfiles:status      # "git identity" section lists configured forges
+mise run dotfiles:doctor      # warns if no identity is set
+```
+
+### Verifying identity
+
+```bash
+mise run dotfiles:status   # shows user.name, user.email, and all forge configs found
+mise run dotfiles:doctor   # WARN if user.name or user.email resolve to nothing
+```
+
+`dotfiles:status` scans `~/.config/git/` for any `*.config` files (excluding
+the main `config`, `ignore`, and `attributes`) and lists them as forge
+overrides.  No configuration is needed — they are discovered automatically.
+
+> **Note:** git expands `~` but **not** environment variables in `gitdir:`
+> patterns.  If you set a custom `XDG_PROJECTS_DIR` (e.g. `~/code`), use the
+> literal expanded path in your `includeIf` blocks (e.g.
+> `gitdir:~/code/github.com/`).
 
 ---
 

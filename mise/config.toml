@@ -223,8 +223,21 @@ _sym ".profile"        "$HOME/.profile"
 _sym ".vimrc"          "$HOME/.vimrc"
 _sym "git/config"      "$HOME/.config/git/config"
 _sym "git/ignore"      "$HOME/.config/git/ignore"
-_sym "git/work.config" "$HOME/.config/git/work.config"
 _sym "git/attributes"  "$HOME/.config/git/attributes"
+echo ""
+echo "  git identity"
+_git_name="$(git config --global user.name 2>/dev/null || true)"
+_git_email="$(git config --global user.email 2>/dev/null || true)"
+printf "  %-22s %s\n" "user.name" "${_git_name:-(not set -- see CONFIGURATION.md)}"
+printf "  %-22s %s\n" "user.email" "${_git_email:-(not set -- see CONFIGURATION.md)}"
+_found_forge=0
+for _cfg in "$HOME/.config/git/"*.config; do
+  [ -f "$_cfg" ] || continue
+  [ "${_cfg##*/}" = "config" ] && continue
+  printf "  %-22s %s\n" "forge config" "$(basename "$_cfg")"
+  _found_forge=$((_found_forge + 1))
+done
+[ "$_found_forge" -eq 0 ] && printf "  %-22s %s\n" "forge configs" "(none -- see CONFIGURATION.md)"
 echo ""
 echo "  tools"
 for _tool in mise git stow vim delta kubectl gh jq sops age; do
@@ -283,10 +296,11 @@ _check   "stow: projects:fingerprint"  "[ -L \"$HOME/.config/mise/tasks/projects
 _check   "stow: .vimrc"                "[ -L \"$HOME/.vimrc\" ]"                          "not a symlink"
 _check   "stow: git/config"            "[ -L \"$HOME/.config/git/config\" ]"           "not a symlink"
 _check   "stow: git/ignore"            "[ -L \"$HOME/.config/git/ignore\" ]"           "not a symlink"
-_check   "stow: git/work.config"       "[ -L \"$HOME/.config/git/work.config\" ]"      "not a symlink"
 _check   "stow: git/attributes"       "[ -L \"$HOME/.config/git/attributes\" ]"      "not a symlink"
 _check   "stow: git/hooks dir"        "[ -d \"$HOME/.config/git/hooks\" ]"             "not a directory"
 _check   "git: no plain ~/.gitconfig"  "[ ! -f \"$HOME/.gitconfig\" ] || [ -L \"$HOME/.gitconfig\" ]" "plain file overrides XDG config; run: mise run bootstrap"
+_check   "git: user.name configured"  "git config --global user.name 2>/dev/null | grep -q ." "not set; see CONFIGURATION.md -> Git Identity"
+_check   "git: user.email configured" "git config --global user.email 2>/dev/null | grep -q ." "not set; see CONFIGURATION.md -> Git Identity"
 _require "tool: mise"                  "command -v mise"                              "not in PATH"
 _require "tool: git"                   "command -v git"                               "not in PATH"
 _check   "tool: stow"                  "command -v stow"                              "run bootstrap to auto-install"

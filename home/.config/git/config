@@ -1,9 +1,16 @@
 # ~/.config/git/config — managed by laidback-dotfiles (stowed from home/.config/git/config)
 # Edit here; run `mise run bootstrap` to restow.
 
-[user]
-  name = Lukas Ciszewski
-  email = lukas.ciszewski@gmail.com
+# ── Identity ──────────────────────────────────────────────────────────────────
+# No identity is configured by default — git will warn on the first commit.
+# See CONFIGURATION.md → "Git Identity" for setup instructions.
+#
+# Quick setup (single identity):
+#   git config --global user.name  "Your Name"
+#   git config --global user.email "you@example.com"
+#
+# For per-forge identity switching, see CONFIGURATION.md.
+# ──────────────────────────────────────────────────────────────────────────────
 
 [core]
   excludesFile = ~/.config/git/ignore
@@ -40,13 +47,21 @@
   co  = checkout
   wip = commit -am 'wip'
 
-# ── Identity by forge ────────────────────────────────────────────────────────
+# ── Identity by forge ─────────────────────────────────────────────────────────
 # Repos are organised as $XDG_PROJECTS_DIR/<forge>/<group>/<project>.
-# (XDG_PROJECTS_DIR defaults to ~/projects — override in your shell before
-# sourcing env.sh if you use a different root.)
+# (XDG_PROJECTS_DIR defaults to ~/projects — override in ~/.zshenv if different.)
 #
-# The default identity above is personal (github.com/laidback).
-# The includeIf below overrides it for work repos on the Hilti forge.
-# Add one block per additional forge you work with.
-[includeIf "gitdir:~/projects/git.buts.hilti.cloud/"]
-  path = ~/.config/git/work.config
+# Each forge can carry its own identity via an includeIf block pointing to a
+# config file you create directly in ~/.config/git/.  These files are NOT part
+# of this repo and are never committed — keep them private.
+#
+# After creating a forge config, add one block here per forge.
+# Example:
+#   [includeIf "gitdir:~/projects/github.com/"]
+#     path = ~/.config/git/github.config
+#
+#   [includeIf "gitdir:~/projects/git.mycompany.com/"]
+#     path = ~/.config/git/mycompany.config
+#
+# NOTE: git expands ~ but NOT env vars in gitdir: patterns.
+# ──────────────────────────────────────────────────────────────────────────────
