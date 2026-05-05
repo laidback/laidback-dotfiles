@@ -1,4 +1,10 @@
+# ~/.config/git/ignore — global gitignore, managed by laidback-dotfiles
+
+# macOS
 .DS_Store
+Thumbs.db
+
+# Editors / IDEs
 .idea/
 .vscode/
 .zed/
@@ -6,17 +12,21 @@
 *.swp
 *.swo
 *~
+
+# Local env / tooling overrides
 .direnv/
 .envrc.local
 .mise.local.toml
 .python-version
-Thumbs.db
-# ~/.config/git/ignore  — global patterns
-.direnv
-.envrc.local
 *.local
-#**/.laidback/secrets/*.dec
+
+# Secrets (belt-and-braces; real home is $LAIDBACK_CONFIG)
+*.pem
+*.key
+*.cert
+secrets.env
+
+# Dependencies / build artifacts
 node_modules/
-.idea/
-.vscode/
-*.swp
+__pycache__/
+*.pyc

@@ -32,22 +32,22 @@ ARG USERNAME=laidback
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-# System packages: bash, zsh, stow (Perl-based, no binary release), git, curl, jq, ca-certs
+# System packages: bash, zsh, stow (Perl-based, no binary release), git, curl, jq, ca-certs, vim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        bash zsh stow git curl ca-certificates jq \
+    bash zsh stow git curl ca-certificates jq vim \
     && rm -rf /var/lib/apt/lists/*
 
 # Optionally install an extra root CA for corporate proxies such as Zscaler.
 RUN --mount=type=secret,id=extra_ca,target=/run/secrets/extra_ca,required=false \
     if [ -s /run/secrets/extra_ca ]; then \
-        cp /run/secrets/extra_ca /usr/local/share/ca-certificates/extra-ca.crt; \
-        update-ca-certificates; \
+    cp /run/secrets/extra_ca /usr/local/share/ca-certificates/extra-ca.crt; \
+    update-ca-certificates; \
     fi
 
 RUN groupadd --gid ${USER_GID} ${USERNAME} \
     && useradd --uid ${USER_UID} --gid ${USER_GID} \
-               --create-home --shell /bin/bash ${USERNAME}
+    --create-home --shell /bin/bash ${USERNAME}
 
 # Install mise to a system-wide path so all users can use it.
 ENV MISE_INSTALL_PATH=/usr/local/bin/mise \
@@ -89,12 +89,12 @@ COPY . .
 # Remove skel-provided dotfiles so stow --adopt --restow does not abort on
 # pre-existing plain files (.profile, .bashrc, .bash_logout) from /etc/skel.
 RUN mkdir -p \
-      "$HOME/.config/shell" \
-      "$HOME/.config/mise/tasks/dotfiles" \
-      "$HOME/.local/share" \
-      "$HOME/.local/state" \
-      "$HOME/.cache" \
-      "$HOME/projects" \
+    "$HOME/.config/shell" \
+    "$HOME/.config/mise/tasks/dotfiles" \
+    "$HOME/.local/share" \
+    "$HOME/.local/state" \
+    "$HOME/.cache" \
+    "$HOME/projects" \
     && rm -f "$HOME/.profile" "$HOME/.bashrc" "$HOME/.bash_logout" \
     && chown -R ${USERNAME}:${USERNAME} "$HOME" /workspace/dotfiles
 
@@ -113,6 +113,15 @@ RUN mise install --yes \
     && mise run validate \
     # verify env.sh is now a symlink (stow worked)
     && test -L "$HOME/.config/shell/env.sh" \
+    # verify .vimrc is stowed
+    && test -L "$HOME/.vimrc" \
+    # install vim-plug (curl download; PlugInstall runs on first vim open)
+    && mkdir -p "$HOME/.vim/autoload" \
+    && curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
+    && test -f "$HOME/.vim/autoload/plug.vim" \
+    # verify kubectl-view_secret plugin was installed by bootstrap
+    && test -x "$HOME/.local/bin/kubectl-view_secret" \
     # verify global tasks are reachable as symlinks
     && test -x "$HOME/.config/mise/tasks/dotfiles/status.sh" \
     && test -x "$HOME/.config/mise/tasks/dotfiles/doctor.sh" \
@@ -133,24 +142,24 @@ ARG USER_UID=1000
 ARG USER_GID=1000
 
 LABEL org.opencontainers.image.title="laidback-dotfiles" \
-      org.opencontainers.image.description="Laidback home environment bootstrap" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.source="https://github.com/laidback/laidback-dotfiles"
+    org.opencontainers.image.description="Laidback home environment bootstrap" \
+    org.opencontainers.image.version="${VERSION}" \
+    org.opencontainers.image.source="https://github.com/laidback/laidback-dotfiles"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        bash zsh stow git curl ca-certificates jq \
+    bash zsh stow git curl ca-certificates jq vim \
     && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=secret,id=extra_ca,target=/run/secrets/extra_ca,required=false \
     if [ -s /run/secrets/extra_ca ]; then \
-        cp /run/secrets/extra_ca /usr/local/share/ca-certificates/extra-ca.crt; \
-        update-ca-certificates; \
+    cp /run/secrets/extra_ca /usr/local/share/ca-certificates/extra-ca.crt; \
+    update-ca-certificates; \
     fi
 
 RUN groupadd --gid ${USER_GID} ${USERNAME} \
     && useradd --uid ${USER_UID} --gid ${USER_GID} \
-               --create-home --shell /bin/bash ${USERNAME}
+    --create-home --shell /bin/bash ${USERNAME}
 
 ENV MISE_INSTALL_PATH=/usr/local/bin/mise \
     MISE_DATA_DIR=/usr/local/share/mise \

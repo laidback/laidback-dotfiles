@@ -58,6 +58,10 @@ _sym "mise config" "$HOME/.config/mise/config.toml"
 _sym ".zshrc" "$HOME/.zshrc"
 _sym ".zprofile" "$HOME/.zprofile"
 _sym ".profile" "$HOME/.profile"
+_sym "git/config" "$HOME/.config/git/config"
+_sym "git/ignore" "$HOME/.config/git/ignore"
+_sym "git/work.config" "$HOME/.config/git/work.config"
+_sym "git/attributes" "$HOME/.config/git/attributes"
 echo ""
 
 _file() {
@@ -77,7 +81,7 @@ _file "dotfiles:doctor" "$HOME/.config/mise/tasks/dotfiles/doctor.sh"
 echo ""
 
 echo "  tools"
-for _tool in mise git stow gh jq sops age; do
+for _tool in mise git stow vim delta kubectl gh jq sops age; do
 	if command -v "$_tool" >/dev/null 2>&1; then
 		_ver_raw="$("$_tool" --version 2>/dev/null || true)"
 		_ver="$(printf '%s' "$_ver_raw" | head -1)"

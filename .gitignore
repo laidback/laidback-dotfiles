@@ -23,6 +23,10 @@ home/.config/laidback/.sops.yaml
 home/.config/sops/age/keys.txt
 home/.config/sops/
 
+# git migration backup (created by bootstrap when ~/.gitconfig pre-exists)
+home/.gitconfig.pre-laidback
+home/.gitconfig.backup
+
 # Corporate proxy CA (provided per-machine, not in git)
 ZscalerRootCA.pem
 

@@ -1,0 +1,16 @@
+# ~/.config/git/attributes — global git attributes
+# Managed by laidback-dotfiles (stowed from home/.config/git/attributes).
+
+# Normalise line endings on check-in for all text files.
+* text=auto eol=lf
+
+# Explicitly binary — never mangle line endings or try to diff as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.pdf  binary
+*.gz   binary
+*.tar  binary
+*.zip  binary

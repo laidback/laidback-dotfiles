@@ -61,7 +61,8 @@ mise run projects:fingerprint [path]   # detect languages / services / ports for
 
 ## Architecture
 
-See `ARCHITECTURE.md` for full variable and topology details.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for full variable and topology details.
+See [CONFIGURATION.md](CONFIGURATION.md) for the full configuration guide — git identities, secrets, and advanced usage.
 
 Highlights:
 

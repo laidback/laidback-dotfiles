@@ -1,0 +1,10 @@
+# This directory is the global git hooks path (core.hooksPath in git config).
+# Place executable hook scripts here to apply them to every repository.
+#
+# Naming: use the standard git hook names without extension, e.g.
+#   commit-msg   pre-commit   prepare-commit-msg   post-checkout
+#
+# Make each hook executable: chmod +x ~/.config/git/hooks/<hook-name>
+#
+# This .gitkeep file ensures the directory is tracked by git so stow
+# creates the real directory (not a symlink) at ~/.config/git/hooks/.

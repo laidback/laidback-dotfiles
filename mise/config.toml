@@ -12,6 +12,7 @@ gh = "2.76.2"
 glab = "1.66.0"
 jq = "1.8.1"
 yq = "4.45.4"
+delta = "latest"
 
 [settings]
 experimental = true
@@ -84,6 +85,72 @@ echo "bootstrap: home/ stowed into $HOME"
 # repo version). The dotfiles repo stays the source of truth.
 git restore home >/dev/null 2>&1 || true
 
+# Git config migration: if $HOME/.gitconfig is a plain file (written by git
+# itself, or left from a pre-laidback setup) move it out of the way so stow
+# can place the XDG symlink at ~/.config/git/config instead.  git reads
+# ~/.config/git/config natively when ~/.gitconfig does not exist.
+if [ -f "$HOME/.gitconfig" ] && [ ! -L "$HOME/.gitconfig" ]; then
+  _gitcfg_bak="$HOME/.gitconfig.pre-laidback"
+  echo "bootstrap: moving $HOME/.gitconfig → $_gitcfg_bak (XDG config takes over)"
+  mv "$HOME/.gitconfig" "$_gitcfg_bak"
+fi
+
+# Install vim-plug and plugins if vim is available.
+if command -v vim >/dev/null 2>&1; then
+  _plug="$HOME/.vim/autoload/plug.vim"
+  if [ ! -f "$_plug" ]; then
+    echo "bootstrap: installing vim-plug..."
+    curl -fLo "$_plug" --create-dirs \
+      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
+      && echo "bootstrap: vim-plug installed at $_plug" \
+      || echo "bootstrap: vim-plug install failed — run :PlugInstall inside vim"
+  else
+    echo "bootstrap: vim-plug already present — skipping download"
+  fi
+  if [ -f "$_plug" ]; then
+    echo "bootstrap: installing vim plugins (PlugInstall)..."
+    # vim exits non-zero in headless mode even on success; use || true and
+    # validate by counting installed plugin directories instead.
+    vim -E -s -u "$HOME/.vimrc" +PlugInstall +qall 2>/dev/null || true
+    _plug_count="$(find "$HOME/.vim/plugged" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l | xargs)"
+    if [ "${_plug_count:-0}" -gt 0 ]; then
+      echo "bootstrap: vim plugins installed ($_plug_count plugins in ~/.vim/plugged/)"
+    else
+      echo "bootstrap: vim plugins may not have installed — open vim and run :PlugInstall"
+    fi
+  fi
+else
+  echo "bootstrap: vim not found — skipping vim-plug setup"
+fi
+
+# kubectl-view-secret plugin: installs as kubectl-view_secret (- → _ required
+# by kubectl plugin naming convention) into ~/.local/bin so kubectl picks it up.
+_kvs_bin="$HOME/.local/bin/kubectl-view_secret"
+_kvs_ver="0.16.0"
+if [ -f "$_kvs_bin" ]; then
+  echo "bootstrap: kubectl-view_secret already present — skipping"
+else
+  _kvs_os="$(uname -s | tr A-Z a-z)"
+  _kvs_arch="$(uname -m)"
+  case "$_kvs_arch" in
+    x86_64)  _kvs_arch="amd64" ;;
+    aarch64|arm64) _kvs_arch="arm64" ;;
+    *) echo "bootstrap: kubectl-view-secret — unsupported arch $_kvs_arch, skipping" ;;
+  esac
+  _kvs_url="https://github.com/elsesiy/kubectl-view-secret/releases/download/v${_kvs_ver}/kubectl-view-secret_v${_kvs_ver}_${_kvs_os}_${_kvs_arch}.tar.gz"
+  _kvs_tmp="$(mktemp -d)"
+  echo "bootstrap: installing kubectl-view-secret v${_kvs_ver} (${_kvs_os}/${_kvs_arch})..."
+  if curl -fsSL "$_kvs_url" | tar -xz -C "$_kvs_tmp"; then
+    mkdir -p "$HOME/.local/bin"
+    mv "$_kvs_tmp/kubectl-view-secret" "$_kvs_bin"
+    chmod +x "$_kvs_bin"
+    echo "bootstrap: kubectl-view_secret installed at $_kvs_bin"
+  else
+    echo "bootstrap: kubectl-view-secret download failed — install manually from https://github.com/elsesiy/kubectl-view-secret/releases"
+  fi
+  rm -rf "$_kvs_tmp"
+fi
+
 # VS Code workspace file: copy starter to the live filename if missing.
 # The live file is gitignored so user edits never touch the repo. A leftover
 # broken symlink (from earlier bootstraps that stowed the file directly) is
@@ -153,9 +220,14 @@ _sym "mise config"     "$HOME/.config/mise/config.toml"
 _sym ".zshrc"          "$HOME/.zshrc"
 _sym ".zprofile"       "$HOME/.zprofile"
 _sym ".profile"        "$HOME/.profile"
+_sym ".vimrc"          "$HOME/.vimrc"
+_sym "git/config"      "$HOME/.config/git/config"
+_sym "git/ignore"      "$HOME/.config/git/ignore"
+_sym "git/work.config" "$HOME/.config/git/work.config"
+_sym "git/attributes"  "$HOME/.config/git/attributes"
 echo ""
 echo "  tools"
-for _tool in mise git stow gh jq sops age; do
+for _tool in mise git stow vim delta kubectl gh jq sops age; do
   if command -v "$_tool" >/dev/null 2>&1; then
     _ver_raw="$("$_tool" --version 2>/dev/null || true)"
     _ver="$(printf '%s' "$_ver_raw" | head -1)"
@@ -208,11 +280,22 @@ _check   "stow: starship.toml"         "[ -L \"$HOME/.config/starship.toml\" ]" 
 _check   "stow: motd.sh"               "[ -L \"$HOME/.config/shell/motd.sh\" ]"       "not a symlink"
 _check   "stow: projects:clone"        "[ -L \"$HOME/.config/mise/tasks/projects/clone.sh\" ] || [ -e \"$HOME/.config/mise/tasks/projects/clone.sh\" ]"  "not present"
 _check   "stow: projects:fingerprint"  "[ -L \"$HOME/.config/mise/tasks/projects/fingerprint.sh\" ] || [ -e \"$HOME/.config/mise/tasks/projects/fingerprint.sh\" ]"  "not present"
+_check   "stow: .vimrc"                "[ -L \"$HOME/.vimrc\" ]"                          "not a symlink"
+_check   "stow: git/config"            "[ -L \"$HOME/.config/git/config\" ]"           "not a symlink"
+_check   "stow: git/ignore"            "[ -L \"$HOME/.config/git/ignore\" ]"           "not a symlink"
+_check   "stow: git/work.config"       "[ -L \"$HOME/.config/git/work.config\" ]"      "not a symlink"
+_check   "stow: git/attributes"       "[ -L \"$HOME/.config/git/attributes\" ]"      "not a symlink"
+_check   "stow: git/hooks dir"        "[ -d \"$HOME/.config/git/hooks\" ]"             "not a directory"
+_check   "git: no plain ~/.gitconfig"  "[ ! -f \"$HOME/.gitconfig\" ] || [ -L \"$HOME/.gitconfig\" ]" "plain file overrides XDG config; run: mise run bootstrap"
 _require "tool: mise"                  "command -v mise"                              "not in PATH"
 _require "tool: git"                   "command -v git"                               "not in PATH"
 _check   "tool: stow"                  "command -v stow"                              "run bootstrap to auto-install"
+_check   "tool: vim"                   "command -v vim"                               "optional"
+_check   "tool: delta"                 "command -v delta"                             "optional"
 _check   "tool: sops"                  "command -v sops"                              "optional"
 _check   "tool: age"                   "command -v age"                               "optional"
+_check   "vim: vim-plug"               "[ -f \"$HOME/.vim/autoload/plug.vim\" ]"        "run: mise run bootstrap"
+_check   "kubectl: view-secret plugin" "[ -x \"$HOME/.local/bin/kubectl-view_secret\" ]" "run: mise run bootstrap"
 _require "global task: dotfiles:status" "[ -x \"$HOME/.config/mise/tasks/dotfiles/status.sh\" ]" "run: mise run bootstrap"
 _require "global task: dotfiles:doctor" "[ -x \"$HOME/.config/mise/tasks/dotfiles/doctor.sh\" ]" "run: mise run bootstrap"
 
@@ -242,7 +325,7 @@ run = "shellcheck install.sh home/.config/shell/env.sh home/.config/shell/motd.s
 
 [tasks."docs:lint"]
 description = "Lint repository markdown docs"
-run = "markdownlint README.md ARCHITECTURE.md"
+run = "markdownlint README.md ARCHITECTURE.md CONFIGURATION.md"
 
 [tasks."json:lint"]
 description = "Validate JSON file syntax"

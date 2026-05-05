@@ -1,4 +1,6 @@
-# ~/.config/git/config
+# ~/.config/git/config — managed by laidback-dotfiles (stowed from home/.config/git/config)
+# Edit here; run `mise run bootstrap` to restow.
+
 [user]
   name = Lukas Ciszewski
   email = lukas.ciszewski@gmail.com
@@ -22,16 +24,29 @@
 [push]
   autoSetupRemote = true
 
-[delta]
-  navigate = true
-  side-by-side = true
-  line-numbers = true
+[fetch]
+  prune = true
+
+[diff]
+  colorMoved = zebra
+
+[merge]
+  conflictstyle = zdiff3
 
 [alias]
-  lg = log --oneline --graph --decorate --all
-  st = status -sb
-  sw = switch
-  co = checkout
+  lg  = log --oneline --graph --decorate --all
+  st  = status -sb
+  sw  = switch
+  co  = checkout
+  wip = commit -am 'wip'
 
-[includeIf "gitdir:~/work/"]
-  path = ~/.config/git/work.config   # override email/signing for work repos
+# ── Identity by forge ────────────────────────────────────────────────────────
+# Repos are organised as $XDG_PROJECTS_DIR/<forge>/<group>/<project>.
+# (XDG_PROJECTS_DIR defaults to ~/projects — override in your shell before
+# sourcing env.sh if you use a different root.)
+#
+# The default identity above is personal (github.com/laidback).
+# The includeIf below overrides it for work repos on the Hilti forge.
+# Add one block per additional forge you work with.
+[includeIf "gitdir:~/projects/git.buts.hilti.cloud/"]
+  path = ~/.config/git/work.config

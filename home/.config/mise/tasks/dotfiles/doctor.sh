@@ -49,6 +49,13 @@ _check "stow: mise/config.toml" "[ -L \"$HOME/.config/mise/config.toml\" ]" "not
 _check "stow: .zshrc" "[ -L \"$HOME/.zshrc\" ]" "not a symlink"
 _check "stow: .zprofile" "[ -L \"$HOME/.zprofile\" ]" "not a symlink"
 _check "stow: .profile" "[ -L \"$HOME/.profile\" ]" "not a symlink"
+_check "stow: git/config" "[ -L \"$HOME/.config/git/config\" ]" "not a symlink; run: mise run bootstrap"
+_check "stow: git/ignore" "[ -L \"$HOME/.config/git/ignore\" ]" "not a symlink; run: mise run bootstrap"
+_check "stow: git/work.config" "[ -L \"$HOME/.config/git/work.config\" ]" "not a symlink; run: mise run bootstrap"
+_check "stow: git/attributes" "[ -L \"$HOME/.config/git/attributes\" ]" "not a symlink; run: mise run bootstrap"
+_check "stow: git/hooks dir" "[ -d \"$HOME/.config/git/hooks\" ]" "not a directory; run: mise run bootstrap"
+_check "git: no plain ~/.gitconfig" "[ ! -f \"$HOME/.gitconfig\" ] || [ -L \"$HOME/.gitconfig\" ]" "plain file overrides XDG config; run: mise run bootstrap"
+_check "stow: .vimrc" "[ -L \"$HOME/.vimrc\" ]" "not a symlink; run: mise run bootstrap"
 
 # Shell foundation
 if [ -e "$HOME/.config/shell/env.sh" ]; then
@@ -66,6 +73,15 @@ _check "tool: stow" "command -v stow" "not installed — bootstrap will auto-ins
 _check "tool: gh" "command -v gh" "optional: mise install gh"
 _check "tool: sops" "command -v sops" "optional: mise install sops"
 _check "tool: age" "command -v age" "optional: mise install age"
+_check "tool: vim" "command -v vim" "optional: brew/apt install vim"
+_check "tool: delta" "command -v delta" "optional: mise install delta"
+_check "tool: kubectl" "command -v kubectl" "optional: kubectl-view-secret requires kubectl"
+
+# Vim plugins
+_check "vim: vim-plug" "[ -f \"$HOME/.vim/autoload/plug.vim\" ]" "run: mise run bootstrap"
+
+# kubectl plugins
+_check "kubectl: view-secret plugin" "[ -x \"$HOME/.local/bin/kubectl-view_secret\" ]" "run: mise run bootstrap"
 
 # Global tasks
 _require "global task: dotfiles:status" "[ -x \"$HOME/.config/mise/tasks/dotfiles/status.sh\" ]" "run: mise run bootstrap"
