@@ -42,7 +42,7 @@ description = "Lint shell scripts"
 run = '''bash -c '
 set -euo pipefail
 _files="$(find mise/tasks -type f -name "*.sh" -print 2>/dev/null || true)"
-shellcheck install.sh home/.config/shell/env.sh home/.config/shell/motd.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/dotfiles/*.sh home/.config/mise/tasks/projects/*.sh $_files
+shellcheck install.sh home/.config/shell/env.sh home/.config/shell/motd.sh home/.config/shell/kube.sh home/.profile home/.zprofile home/.bashrc home/.bash_profile home/.bashrc.ai home/.bash_profile.ai home/.config/mise/tasks/dotfiles/*.sh home/.config/mise/tasks/projects/*.sh $_files
 ' '''
 
 # Global namespaced mise tasks (auto-discovered after bootstrap stows them):

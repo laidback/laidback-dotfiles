@@ -73,6 +73,9 @@ alias la='ls -A'
 alias ..='cd ..'
 alias ...='cd ../..'
 
+# Shared kubectl helpers (ktx, kns)
+[ -f "$HOME/.config/shell/kube.sh" ] && . "$HOME/.config/shell/kube.sh"
+
 # ── MOTD (directory-aware, mode-aware) ──────────────────────────────────────
 # Silent unless cwd changed since last shown.
 if [ -f "$HOME/.config/shell/motd.sh" ]; then

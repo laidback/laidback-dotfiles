@@ -200,16 +200,6 @@
 			"label": "runtime: dotfiles:doctor",
 			"type": "shell",
 			"command": "/bin/bash --noprofile --norc -c 'cd ${workspaceFolder} && export PAGER=cat GIT_PAGER=cat && mise run dotfiles:doctor'"
-		},
-		{
-			"label": "shell: Validate and push Docker CI fix",
-			"type": "shell",
-			"command": "/bin/bash --noprofile --norc -c 'cd /Users/ciszluk/projects/github.com/laidback/laidback-dotfiles && export PAGER=cat GIT_PAGER=cat && mise run validate && git add Dockerfile .vscode/tasks.json && git status --short && git commit --no-verify -m \"fix(docker): run canonical bootstrap in test stage before assertions\" -m \"Docker test stage now runs mise run bootstrap (after trust) so kubectl-view_secret and other bootstrap-managed artifacts exist before post-validate assertions.\" -m \"Also cleaned .vscode/tasks.json back to canonical shareable wrappers (removed local shell/debug helper tasks) to satisfy vscode:tasks-check invariant.\" && git push origin main 2>&1 | tail -10'"
-		},
-		{
-			"label": "shell: Commit and push Docker fix v2",
-			"type": "shell",
-			"command": "/bin/bash --noprofile --norc -c 'cd /Users/ciszluk/projects/github.com/laidback/laidback-dotfiles && export PAGER=cat GIT_PAGER=cat && git add Dockerfile && git add -f .vscode/tasks.json && git status --short && git commit --no-verify -m \"fix(docker): run canonical bootstrap in test stage before assertions\" -m \"Docker test stage now runs mise run bootstrap (after trust) so kubectl-view_secret and other bootstrap-managed artifacts exist before post-validate assertions.\" -m \"Also cleaned .vscode/tasks.json back to canonical shareable wrappers (removed local shell/debug helper tasks) to satisfy vscode:tasks-check invariant.\" && git push origin main 2>&1 | tail -10'"
 		}
 	]
 }
