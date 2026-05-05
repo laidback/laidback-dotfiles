@@ -106,10 +106,11 @@ RUN mise install --yes \
     # syntax-check all shell scripts
     && bash -n install.sh \
     && find home/.config/mise/tasks -name '*.sh' -exec bash -n {} \; \
-    # bootstrap: stows home/ into $HOME (global mise tasks come along for free)
-    && stow --dir=/workspace/dotfiles --target="$HOME" --adopt --restow home \
-    # validate the repo (lint + doctor)
+    && find mise/tasks -name '*.sh' -exec bash -n {} \; \
+    # bootstrap via canonical mise entrypoint (stow + plugins + global tasks)
     && mise trust --yes \
+    && mise run bootstrap \
+    # validate the repo (lint + doctor)
     && mise run validate \
     # verify env.sh is now a symlink (stow worked)
     && test -L "$HOME/.config/shell/env.sh" \
