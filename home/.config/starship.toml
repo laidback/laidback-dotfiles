@@ -72,21 +72,39 @@ trim_at = '.hilti.com'
 disabled = false
 
 [kubernetes]
-symbol = '[󱃾](cyan bold)'
-format = '\($symbol|[$user](blue)@[$context](blue)/[$namespace](red)\)'
+symbol = '󱃾 '
+format = '[${symbol}${user:+$user@}${context}${namespace:+:$namespace}]($style) '
+style = 'cyan bold'
 disabled = false
 
 [aws]
 symbol = ''
-format = '[$symbol ($profile)(\($region\))]($style)'
-style = 'bold blue'
+format = '[${symbol} ${profile}${region:+ ($region)}]($style) '
+style = 'yellow bold'
 
-[custom.GITLAB]
-symbol = '\([ ](orange bold)'
-command = 'echo "$symbol|$GITLAB_REPO|$GITLAB_GROUP)"'
-when = '[ -n "$GITLAB_REPO" ]'
+[custom.git_identity]
+format = '[- $output]($style) '
+style = 'bold orange'
+command = '''sh -c '
+_email="$(git config user.email 2>/dev/null || true)"
+_remote="$(git config --get remote.origin.url 2>/dev/null || true)"
+[ -n "$_email" ] || exit 0
+[ -n "$_remote" ] || exit 0
+
+_user="${_email%@*}"
+case "$_remote" in
+	https://*) _forge="${_remote#https://}"; _forge="${_forge%%/*}" ;;
+	ssh://git@*) _forge="${_remote#ssh://git@}"; _forge="${_forge%%/*}" ;;
+	git@*:* ) _forge="${_remote#git@}"; _forge="${_forge%%:*}" ;;
+	* ) _forge="" ;;
+esac
+
+[ -n "$_forge" ] || exit 0
+printf "%s@%s" "$_user" "$_forge"
+' '''
+when = 'git rev-parse --is-inside-work-tree >/dev/null 2>&1'
 detect_folders = [".git"]
-description = 'gitlab module'
+description = 'generic git identity module'
 # ── Additional context modules ─────────────────────────────────────
 
 [python]
