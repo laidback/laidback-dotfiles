@@ -60,7 +60,10 @@ if [ "$_os" = "Darwin" ]; then
 
 	if ! command -v brew >/dev/null 2>&1; then
 		echo "→ [1.5/4] Homebrew not found — installing..."
-		NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+		if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+			echo "  Homebrew install failed — install manually and re-run" >&2
+			exit 1
+		fi
 		if [ -x /opt/homebrew/bin/brew ]; then
 			eval "$(/opt/homebrew/bin/brew shellenv)"
 		elif [ -x /usr/local/bin/brew ]; then
