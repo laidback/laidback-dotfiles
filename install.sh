@@ -76,7 +76,7 @@ if [ "$_os" = "Darwin" ]; then
 		exit 1
 	fi
 
-	echo "  brew $(brew --version | head -n1)"
+	echo "  brew $(brew --version 2>&1 | head -n1)"
 fi
 
 # ------------------------------------------------------------------
