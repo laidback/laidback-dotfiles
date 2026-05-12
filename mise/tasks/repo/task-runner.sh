@@ -8,11 +8,47 @@ if [ -z "$_task" ]; then
 fi
 
 run_bootstrap() {
+  _ensure_homebrew() {
+    if [ "$(uname -s)" != "Darwin" ]; then
+      return 0
+    fi
+
+    if [ -x /opt/homebrew/bin/brew ] && ! command -v brew >/dev/null 2>&1; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ] && ! command -v brew >/dev/null 2>&1; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
+
+    if command -v brew >/dev/null 2>&1; then
+      return 0
+    fi
+
+    echo "bootstrap: Homebrew not found — installing..."
+    if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+      echo "bootstrap: Homebrew install failed — install manually and re-run" >&2
+      exit 1
+    fi
+
+    if [ -x /opt/homebrew/bin/brew ]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
+
+    if ! command -v brew >/dev/null 2>&1; then
+      echo "bootstrap: Homebrew installed but brew is still not in PATH" >&2
+      exit 1
+    fi
+  }
+
   # Ensure stow is available (not in mise registry — install via system package manager)
   if ! command -v stow >/dev/null 2>&1; then
     echo "bootstrap: installing stow..."
     case "$(uname -s)" in
-      Darwin) brew install stow ;;
+      Darwin)
+        _ensure_homebrew
+        brew install stow
+        ;;
       Linux)
         if command -v apt-get >/dev/null 2>&1; then
           sudo apt-get install -y stow
@@ -268,6 +304,9 @@ run_doctor() {
   _require "tool: mise" "command -v mise" "not in PATH"
   _require "tool: git" "command -v git" "not in PATH"
   _check "tool: stow" "command -v stow" "run bootstrap to auto-install"
+  if [ "$(uname -s)" = "Darwin" ]; then
+    _check "tool: brew" "command -v brew" "required on macOS; install Homebrew and re-run bootstrap"
+  fi
   _check "tool: vim" "command -v vim" "optional"
   _check "tool: delta" "command -v delta" "optional"
   _check "tool: sops" "command -v sops" "optional"

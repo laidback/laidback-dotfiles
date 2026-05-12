@@ -75,6 +75,9 @@ _require "tool: git" "command -v git" "not in PATH"
 
 # Optional tools
 _check "tool: stow" "command -v stow" "not installed — bootstrap will auto-install"
+if [ "$(uname -s)" = "Darwin" ]; then
+	_check "tool: brew" "command -v brew" "required on macOS; install Homebrew and re-run bootstrap"
+fi
 _check "tool: gh" "command -v gh" "optional: mise install gh"
 _check "tool: sops" "command -v sops" "optional: mise install sops"
 _check "tool: age" "command -v age" "optional: mise install age"

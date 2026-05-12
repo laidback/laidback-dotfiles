@@ -49,6 +49,34 @@ Darwin | Linux) echo "  platform: $_os/$_arch — supported" ;;
 esac
 
 # ------------------------------------------------------------------
+# 3.5 Ensure Homebrew on macOS
+# ------------------------------------------------------------------
+if [ "$_os" = "Darwin" ]; then
+	if [ -x /opt/homebrew/bin/brew ] && ! command -v brew >/dev/null 2>&1; then
+		eval "$(/opt/homebrew/bin/brew shellenv)"
+	elif [ -x /usr/local/bin/brew ] && ! command -v brew >/dev/null 2>&1; then
+		eval "$(/usr/local/bin/brew shellenv)"
+	fi
+
+	if ! command -v brew >/dev/null 2>&1; then
+		echo "→ [1.5/4] Homebrew not found — installing..."
+		NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+		if [ -x /opt/homebrew/bin/brew ]; then
+			eval "$(/opt/homebrew/bin/brew shellenv)"
+		elif [ -x /usr/local/bin/brew ]; then
+			eval "$(/usr/local/bin/brew shellenv)"
+		fi
+	fi
+
+	if ! command -v brew >/dev/null 2>&1; then
+		echo "  Homebrew install did not provide brew in PATH — install manually and re-run" >&2
+		exit 1
+	fi
+
+	echo "  brew $(brew --version | head -n1)"
+fi
+
+# ------------------------------------------------------------------
 # 4. Ensure mise
 # ------------------------------------------------------------------
 echo "→ [2/4] Checking mise..."
