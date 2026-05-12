@@ -49,7 +49,7 @@ Darwin | Linux) echo "  platform: $_os/$_arch — supported" ;;
 esac
 
 # ------------------------------------------------------------------
-# 3.5 Ensure Homebrew on macOS
+# 1.5 Ensure Homebrew on macOS
 # ------------------------------------------------------------------
 if [ "$_os" = "Darwin" ]; then
 	if [ -x /opt/homebrew/bin/brew ] && ! command -v brew >/dev/null 2>&1; then

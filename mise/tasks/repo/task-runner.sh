@@ -47,7 +47,10 @@ run_bootstrap() {
     case "$(uname -s)" in
       Darwin)
         _ensure_homebrew
-        brew install stow
+        if ! brew install stow; then
+          echo "bootstrap: failed to install stow with Homebrew" >&2
+          exit 1
+        fi
         ;;
       Linux)
         if command -v apt-get >/dev/null 2>&1; then
