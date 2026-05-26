@@ -43,6 +43,7 @@ fi
 
 # ── zsh options ─────────────────────────────────────────────────────────────
 setopt promptsubst extendedglob
+bindkey -v   # vi key bindings
 
 # History
 HISTSIZE=50000
@@ -75,6 +76,9 @@ alias ...='cd ../..'
 
 # Shared kubectl helpers (ktx, kns)
 [ -f "$HOME/.config/shell/kube.sh" ] && . "$HOME/.config/shell/kube.sh"
+
+# Corporate proxy / Zscaler CA trust
+[ -f "$HOME/.config/shell/zscaler.sh" ] && . "$HOME/.config/shell/zscaler.sh"
 
 # ── MOTD (directory-aware, mode-aware) ──────────────────────────────────────
 # Silent unless cwd changed since last shown.
