@@ -41,6 +41,15 @@ run_bootstrap() {
     fi
   }
 
+  _ensure_brew_formula() {
+    local formula="$1"
+    if brew list --formula "$formula" >/dev/null 2>&1; then
+      return 0
+    fi
+    echo "bootstrap: installing $formula via Homebrew..."
+    brew install "$formula"
+  }
+
   # Ensure stow is available (not in mise registry — install via system package manager)
   if ! command -v stow >/dev/null 2>&1; then
     echo "bootstrap: installing stow..."
@@ -67,6 +76,14 @@ run_bootstrap() {
         exit 1
         ;;
     esac
+  fi
+
+  if [ "$(uname -s)" = "Darwin" ]; then
+    _ensure_homebrew
+    _ensure_brew_formula stow
+    _ensure_brew_formula starship
+    _ensure_brew_formula markdownlint-cli
+    _ensure_brew_formula bash
   fi
 
   mkdir -p "$HOME/.kube" "$HOME/.aws" "$HOME/.config/Code/User"
@@ -238,7 +255,7 @@ run_status() {
   [ "$_found_forge" -eq 0 ] && printf "  %-22s %s\n" "forge configs" "(none -- see CONFIGURATION.md)"
   echo ""
   echo "  tools"
-  for _tool in mise git stow vim delta kubectl gh jq sops age; do
+  for _tool in mise git stow vim delta kubectl gh jq sops age starship markdownlint; do
     if command -v "$_tool" >/dev/null 2>&1; then
       _ver_raw="$("$_tool" --version 2>/dev/null || true)"
       _ver="$(printf '%s' "$_ver_raw" | head -1)"
@@ -248,6 +265,30 @@ run_status() {
       printf "  %-22s %s\n" "$_tool" "not found"
     fi
   done
+  _bash_active="$(bash --version 2>/dev/null | head -1 || true)"
+  [ -z "$_bash_active" ] && _bash_active="not found"
+  printf "  %-22s %s\n" "bash (active)" "$_bash_active"
+
+  _bash_brew=""
+  if [ -x /opt/homebrew/bin/bash ]; then
+    _bash_brew="/opt/homebrew/bin/bash"
+  elif [ -x /usr/local/bin/bash ]; then
+    _bash_brew="/usr/local/bin/bash"
+  fi
+  if [ -n "$_bash_brew" ]; then
+    _bash_brew_ver="$("$_bash_brew" --version 2>/dev/null | head -1 || true)"
+    printf "  %-22s %s (%s)\n" "bash (brew)" "${_bash_brew_ver:-installed}" "$_bash_brew"
+  elif [ "$(uname -s)" = "Darwin" ]; then
+    printf "  %-22s %s\n" "bash (brew)" "not found (install via brew install bash)"
+  fi
+  if command -v markdownlint >/dev/null 2>&1; then
+    _md_path="$(command -v markdownlint)"
+    if [ "$_md_path" = "$HOME/.local/share/mise/shims/markdownlint" ]; then
+      printf "  %-22s %s\n" "markdownlint source" "mise shim (expected: Homebrew formula)"
+    else
+      printf "  %-22s %s\n" "markdownlint source" "$_md_path"
+    fi
+  fi
   echo "======================================================================"
 }
 
@@ -309,6 +350,10 @@ run_doctor() {
   _check "tool: stow" "command -v stow" "run bootstrap to auto-install"
   if [ "$(uname -s)" = "Darwin" ]; then
     _check "tool: brew" "command -v brew" "required on macOS; install Homebrew and re-run bootstrap"
+    _require "tool: markdownlint (brew)" "command -v brew && brew list --formula markdownlint-cli >/dev/null 2>&1" "install via brew: brew install markdownlint-cli"
+    _require "tool: starship" "command -v starship" "install via brew: brew install starship"
+    _require "tool: bash (brew path)" "[ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]" "install via brew: brew install bash"
+    _require "tool: bash >= 5" "( [ -x /opt/homebrew/bin/bash ] && /opt/homebrew/bin/bash -lc '((BASH_VERSINFO[0] >= 5))' ) || ( [ -x /usr/local/bin/bash ] && /usr/local/bin/bash -lc '((BASH_VERSINFO[0] >= 5))' )" "brew bash must be v5+ (macOS /bin/bash is 3.2)"
   fi
   _check "tool: vim" "command -v vim" "optional"
   _check "tool: delta" "command -v delta" "optional"

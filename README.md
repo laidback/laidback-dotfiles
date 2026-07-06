@@ -192,6 +192,9 @@ Included quality gates:
 - `hadolint` — Dockerfile linting
 - `actionlint` — GitHub Actions workflow linting
 
+On macOS, `markdownlint`, `starship`, and `bash` are required to come from Homebrew.
+`dotfiles:doctor` enforces this (`bash` must be Homebrew Bash 5+, not the system `/bin/bash` 3.2).
+
 ## Local CI
 
 ```bash

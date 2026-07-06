@@ -8,6 +8,11 @@
 # Return early in non-interactive shells (should not happen via .zshrc, but guard anyway).
 [[ -o interactive ]] || return
 
+# ── Completion init (must precede any zinit snippets that call compdef) ─────
+autoload -Uz compinit && compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
 # ── Zinit ───────────────────────────────────────────────────────────────────
 ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
 if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
@@ -17,8 +22,13 @@ if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
     zinit snippet OMZL::git.zsh
     zinit snippet OMZL::directories.zsh
     zinit snippet OMZP::git
+    zinit snippet OMZP::docker
     zinit snippet OMZP::kubectl
     zinit snippet OMZP::kube-ps1
+    zinit snippet OMZP::fluxcd
+    zinit snippet OMZP::helm
+    zinit snippet OMZP::terraform
+    zinit snippet OMZP::aws
     zinit snippet OMZP::zoxide
 
     # Core plugins — loaded asynchronously after first prompt
@@ -29,6 +39,11 @@ if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
             zsh-users/zsh-completions \
         atload"!_zsh_autosuggest_start" \
             zsh-users/zsh-autosuggestions
+fi
+
+# ── Crossplane completions ──────────────────────────────────────────────────
+if command -v crossplane >/dev/null 2>&1; then
+    source <(crossplane completions)
 fi
 
 # ── Starship prompt ─────────────────────────────────────────────────────────
@@ -51,11 +66,6 @@ SAVEHIST=50000
 HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 mkdir -p "$(dirname "$HISTFILE")"
 setopt share_history append_history hist_ignore_dups hist_reduce_blanks
-
-# Completion
-autoload -Uz compinit && compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
-zstyle ':completion:*' menu select
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 # ── PATH extras ─────────────────────────────────────────────────────────────
 [[ -d "$HOME/bin" ]]        && PATH="$HOME/bin:$PATH"
@@ -90,3 +100,4 @@ if [ -f "$HOME/.config/shell/motd.sh" ]; then
         add-zsh-hook precmd _laidback_motd
     fi
 fi
+

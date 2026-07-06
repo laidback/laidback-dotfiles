@@ -46,3 +46,4 @@ home/projects/*.code-workspace
 # local — user edits never touch the repo.
 !home/projects/*.code-workspace.example
 home/projects/mise/
+.cachebro
