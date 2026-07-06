@@ -77,9 +77,11 @@ style = 'cyan bold'
 disabled = false
 
 [aws]
+expiration_symbol = '⏳'
 symbol = ''
-format = '[${symbol} $profile( ($region))]($style) '
 style = 'yellow bold'
+force_display = true
+format = '[${symbol} $profile( \($region\))]($style) '
 
 # ── Additional context modules ─────────────────────────────────────
 
@@ -133,4 +135,3 @@ threshold = 2
 symbol = '↕'
 format = '[$symbol$shlvl]($style) '
 style = 'yellow bold'
-
