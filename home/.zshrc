@@ -84,6 +84,10 @@ alias la='ls -A'
 alias ..='cd ..'
 alias ...='cd ../..'
 
+
+# Shared aws-cli helpers (acuc)
+[ -f "$HOME/.config/shell/aws.sh" ] && . "$HOME/.config/shell/aws.sh"
+
 # Shared kubectl helpers (ktx, kns)
 [ -f "$HOME/.config/shell/kube.sh" ] && . "$HOME/.config/shell/kube.sh"
 
